@@ -10,7 +10,6 @@ import 'screens/home_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // await NotificationService.instance.init();
 
   await Hive.initFlutter();
   Hive.registerAdapter(GroceryItemAdapter());
@@ -28,9 +27,6 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => NotesProvider()),
-        // ChangeNotifierProvider(
-        //   create: (_) => NotesProvider()..resyncAllReminders(),
-        // ),
         ChangeNotifierProvider(create: (_) => GroceryProvider()),
       ],
       child: Consumer<ThemeProvider>(
