@@ -40,4 +40,20 @@ class GroceryItem extends HiveObject {
       createdAt: createdAt,
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'quantity': quantity,
+        'isChecked': isChecked,
+        'createdAt': createdAt.toIso8601String(),
+      };
+
+  factory GroceryItem.fromJson(Map<String, dynamic> json) => GroceryItem(
+        id: json['id'] as String,
+        name: json['name'] as String? ?? '',
+        quantity: json['quantity'] as String? ?? '',
+        isChecked: json['isChecked'] as bool? ?? false,
+        createdAt: DateTime.parse(json['createdAt'] as String),
+      );
 }
