@@ -4,8 +4,10 @@ import 'package:provider/provider.dart';
 import '../providers/notes_provider.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/note_card.dart';
-import 'grocery_screen.dart';
+import 'checklists_screen.dart';
 import 'note_edit_screen.dart';
+import 'reminder_edit_screen.dart';
+import 'reminders_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,8 +17,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _tabIndex = 0; // 0 = Notes, 1 = Bookmarks, 2 = Groceries
+  int _tabIndex = 0; // 0 = Notes, 1 = Reminders, 2 = Checklist
   bool _isSearching = false;
+  bool _showBookmarkedOnly = false;
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -40,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
-    final isNotesTab = _tabIndex == 0 || _tabIndex == 1;
+    final isNotesTab = _tabIndex == 0;
 
     return Scaffold(
       appBar: AppBar(
@@ -58,6 +61,15 @@ class _HomeScreenState extends State<HomeScreen> {
               )
             : Text(_titleForTab(_tabIndex)),
         actions: [
+          if (isNotesTab && !_isSearching)
+            IconButton(
+              icon: Icon(
+                _showBookmarkedOnly ? Icons.bookmark : Icons.bookmark_border,
+              ),
+              tooltip: 'Show bookmarked only',
+              onPressed: () =>
+                  setState(() => _showBookmarkedOnly = !_showBookmarkedOnly),
+            ),
           if (isNotesTab)
             IconButton(
               icon: Icon(_isSearching ? Icons.close : Icons.search),
@@ -75,24 +87,29 @@ class _HomeScreenState extends State<HomeScreen> {
       body: IndexedStack(
         index: _tabIndex,
         children: [
-          _NotesList(bookmarkedOnly: false),
-          _NotesList(bookmarkedOnly: true),
-          const GroceryScreen(),
+          _NotesList(bookmarkedOnly: _showBookmarkedOnly),
+          const RemindersScreen(),
+          const ChecklistsScreen(),
         ],
       ),
-      floatingActionButton: isNotesTab
-          ? FloatingActionButton(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const NoteEditScreen()),
-              ),
+      floatingActionButton: _tabIndex == 2
+          ? null // Checklists tab has its own scaffold + FAB (create checklist)
+          : FloatingActionButton(
+              onPressed: () => _tabIndex == 0
+                  ? Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const NoteEditScreen()),
+                    )
+                  : Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (_) => const ReminderEditScreen()),
+                    ),
               child: const Icon(Icons.add),
-            )
-          : null,
+            ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tabIndex,
         onDestinationSelected: (index) {
           setState(() => _tabIndex = index);
-          if (index == 2) _stopSearch();
+          if (index != 0) _stopSearch();
         },
         destinations: const [
           NavigationDestination(
@@ -101,14 +118,14 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Notes',
           ),
           NavigationDestination(
-            icon: Icon(Icons.bookmark_outline),
-            selectedIcon: Icon(Icons.bookmark),
-            label: 'Bookmarks',
+            icon: Icon(Icons.alarm_outlined),
+            selectedIcon: Icon(Icons.alarm),
+            label: 'Reminders',
           ),
           NavigationDestination(
-            icon: Icon(Icons.shopping_cart_outlined),
-            selectedIcon: Icon(Icons.shopping_cart),
-            label: 'Groceries',
+            icon: Icon(Icons.checklist_outlined),
+            selectedIcon: Icon(Icons.checklist),
+            label: 'Checklist',
           ),
         ],
       ),
@@ -118,11 +135,11 @@ class _HomeScreenState extends State<HomeScreen> {
   String _titleForTab(int index) {
     switch (index) {
       case 1:
-        return 'Bookmarks';
+        return 'Reminders';
       case 2:
-        return 'Groceries';
+        return 'Checklist';
       default:
-        return 'Notes';
+        return _showBookmarkedOnly ? 'Bookmarked Notes' : 'Notes';
     }
   }
 }
@@ -144,7 +161,8 @@ class _NotesList extends StatelessWidget {
           final query = provider.searchQuery;
           String message;
           if (bookmarkedOnly) {
-            message = 'No bookmarked notes yet.\nTap the bookmark icon on a note to save it here.';
+            message =
+                'No bookmarked notes yet.\nTap the bookmark icon on a note to save it here.';
           } else if (query.isNotEmpty) {
             message = 'No notes found for "$query"';
           } else {

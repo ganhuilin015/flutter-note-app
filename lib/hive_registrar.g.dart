@@ -3,19 +3,22 @@
 // Check in to version control
 
 import 'package:hive_ce/hive_ce.dart';
-import 'package:notepad/models/grocery_item.dart';
+import 'package:notepad/models/checklist.dart';
 import 'package:notepad/models/note.dart';
+import 'package:notepad/models/reminder.dart';
 
 extension HiveRegistrar on HiveInterface {
   void registerAdapters() {
-    registerAdapter(GroceryItemAdapter());
+    registerAdapter(ChecklistAdapter());
     registerAdapter(NoteAdapter());
+    registerAdapter(ReminderAdapter());
   }
 }
 
 extension IsolatedHiveRegistrar on IsolatedHiveInterface {
   void registerAdapters() {
-    registerAdapter(GroceryItemAdapter());
+    registerAdapter(ChecklistAdapter());
     registerAdapter(NoteAdapter());
+    registerAdapter(ReminderAdapter());
   }
 }

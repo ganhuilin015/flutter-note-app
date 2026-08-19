@@ -1,20 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:notepad/models/grocery_item.dart';
-import 'package:hive_ce_flutter/hive_flutter.dart';
+import 'package:notepad/models/checklist.dart';
+import 'package:notepad/models/note.dart';
+import 'package:notepad/models/reminder.dart';
 import 'package:provider/provider.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 
 import 'providers/notes_provider.dart';
-import 'providers/grocery_provider.dart';
+import 'providers/checklist_provider.dart';
+import 'providers/reminder_provider.dart';
 import 'providers/theme_provider.dart';
+import 'services/notification_service.dart';
 import 'screens/home_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.instance.init();
 
   await Hive.initFlutter();
-  Hive.registerAdapter(GroceryItemAdapter());
-  await Hive.openBox<GroceryItem>('grocery_items');
-  
+  Hive.registerAdapter(ChecklistAdapter());
+  Hive.registerAdapter(NoteAdapter());
+  Hive.registerAdapter(ReminderAdapter());
+
+  await Hive.openBox<Checklist>('checklists');
+  await Hive.openBox<Note>('notes');
+  await Hive.openBox<Reminder>('reminders');
+
   runApp(const MyApp());
 }
 
@@ -27,7 +37,10 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => NotesProvider()),
-        ChangeNotifierProvider(create: (_) => GroceryProvider()),
+        ChangeNotifierProvider(create: (_) => ChecklistProvider()),
+        ChangeNotifierProvider(
+          create: (_) => ReminderProvider()..resyncAll(),
+        ),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {

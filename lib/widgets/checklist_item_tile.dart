@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../models/grocery_item.dart';
+import '../models/checklist_item.dart';
 
-class GroceryTile extends StatelessWidget {
-  final GroceryItem item;
+class ChecklistItemTile extends StatelessWidget {
+  final ChecklistItem item;
   final ValueChanged<bool?> onToggle;
   final VoidCallback onDelete;
 
-  const GroceryTile({
+  const ChecklistItemTile({
     super.key,
     required this.item,
     required this.onToggle,
@@ -35,8 +35,7 @@ class GroceryTile extends StatelessWidget {
         title: Text(
           item.name,
           style: TextStyle(
-            decoration:
-                item.isChecked ? TextDecoration.lineThrough : null,
+            decoration: item.isChecked ? TextDecoration.lineThrough : null,
             color: item.isChecked
                 ? theme.textTheme.bodySmall?.color
                 : theme.textTheme.bodyLarge?.color,
