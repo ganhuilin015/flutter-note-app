@@ -2,7 +2,7 @@ import 'package:hive_ce/hive.dart';
 
 part 'note.g.dart';
 
-@HiveType(typeId: 1)
+@HiveType(typeId: 3)
 class Note extends HiveObject {
   @HiveField(0)
   final String id;

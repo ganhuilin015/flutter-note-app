@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:notepad/models/checklist.dart';
+import 'package:notepad/models/checklist_item.dart';
 import 'package:notepad/models/note.dart';
 import 'package:notepad/models/reminder.dart';
 import 'package:provider/provider.dart';
@@ -18,12 +19,14 @@ Future<void> main() async {
 
   await Hive.initFlutter();
   Hive.registerAdapter(ChecklistAdapter());
+  Hive.registerAdapter(ChecklistItemAdapter());
   Hive.registerAdapter(NoteAdapter());
   Hive.registerAdapter(ReminderAdapter());
 
   await Hive.openBox<Checklist>('checklists');
   await Hive.openBox<Note>('notes');
   await Hive.openBox<Reminder>('reminders');
+  await Hive.openBox<ChecklistItem>('checklist_items');
 
   runApp(const MyApp());
 }
@@ -38,9 +41,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => NotesProvider()),
         ChangeNotifierProvider(create: (_) => ChecklistProvider()),
-        ChangeNotifierProvider(
-          create: (_) => ReminderProvider()..resyncAll(),
-        ),
+        ChangeNotifierProvider(create: (_) => ReminderProvider()..resyncAll()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {

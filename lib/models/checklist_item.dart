@@ -1,9 +1,25 @@
-class ChecklistItem {
+import 'package:hive_ce/hive.dart';
+
+part 'checklist_item.g.dart';
+
+@HiveType(typeId: 4)
+class ChecklistItem extends HiveObject {
+  @HiveField(0)
   final String id;
+
+  @HiveField(1)
   final String checklistId;
+
+  @HiveField(2)
   String name;
+
+  @HiveField(3)
   String quantity;
+
+  @HiveField(4)
   bool isChecked;
+
+  @HiveField(5)
   DateTime createdAt;
 
   ChecklistItem({

@@ -4,12 +4,14 @@
 
 import 'package:hive_ce/hive_ce.dart';
 import 'package:notepad/models/checklist.dart';
+import 'package:notepad/models/checklist_item.dart';
 import 'package:notepad/models/note.dart';
 import 'package:notepad/models/reminder.dart';
 
 extension HiveRegistrar on HiveInterface {
   void registerAdapters() {
     registerAdapter(ChecklistAdapter());
+    registerAdapter(ChecklistItemAdapter());
     registerAdapter(NoteAdapter());
     registerAdapter(ReminderAdapter());
   }
@@ -18,6 +20,7 @@ extension HiveRegistrar on HiveInterface {
 extension IsolatedHiveRegistrar on IsolatedHiveInterface {
   void registerAdapters() {
     registerAdapter(ChecklistAdapter());
+    registerAdapter(ChecklistItemAdapter());
     registerAdapter(NoteAdapter());
     registerAdapter(ReminderAdapter());
   }
