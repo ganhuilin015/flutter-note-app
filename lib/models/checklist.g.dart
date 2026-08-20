@@ -21,13 +21,14 @@ class ChecklistAdapter extends TypeAdapter<Checklist> {
       name: fields[1] as String,
       createdAt: fields[2] as DateTime,
       updatedAt: fields[3] as DateTime,
+      isBookmarked: fields[4] == null ? false : fields[4] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, Checklist obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -35,7 +36,9 @@ class ChecklistAdapter extends TypeAdapter<Checklist> {
       ..writeByte(2)
       ..write(obj.createdAt)
       ..writeByte(3)
-      ..write(obj.updatedAt);
+      ..write(obj.updatedAt)
+      ..writeByte(4)
+      ..write(obj.isBookmarked);
   }
 
   @override

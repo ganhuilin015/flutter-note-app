@@ -14,7 +14,6 @@ class ChecklistProvider extends ChangeNotifier {
   List<Checklist> _checklists = [];
   List<ChecklistItem> _items = [];
 
-  /// All checklists, most recently updated first.
   List<Checklist> get checklists {
     final list = List<Checklist>.from(_checklists);
     list.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
@@ -44,8 +43,6 @@ class ChecklistProvider extends ChangeNotifier {
           .toList();
     }
 
-    // Seed a default "Groceries" checklist on very first launch so the
-    // tab isn't empty before the user has created anything.
     if (_checklists.isEmpty && rawChecklists == null) {
       final now = DateTime.now();
       _checklists.add(Checklist(
@@ -73,19 +70,22 @@ class ChecklistProvider extends ChangeNotifier {
     await prefs.setString(_itemsKey, encoded);
   }
 
-  // ---- Checklists ----
-
-  Future<Checklist> addChecklist(String name) async {
+  Future addChecklist(String name) async {
     final now = DateTime.now();
+
     final checklist = Checklist(
       id: _uuid.v4(),
       name: name.trim().isEmpty ? 'Untitled checklist' : name.trim(),
       createdAt: now,
       updatedAt: now,
+      isBookmarked: false,
     );
+
     _checklists.add(checklist);
+
     await _persistChecklists();
     notifyListeners();
+
     return checklist;
   }
 
@@ -115,8 +115,6 @@ class ChecklistProvider extends ChangeNotifier {
       return null;
     }
   }
-
-  // ---- Items (scoped to a checklist) ----
 
   List<ChecklistItem> pendingItems(String checklistId) {
     final list = _items
@@ -186,13 +184,34 @@ class ChecklistProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Bumps a checklist's updatedAt so "most recently used" ordering works,
-  /// without awaiting the persistence write on the caller.
+
   void _touchChecklist(String checklistId) {
     final index = _checklists.indexWhere((c) => c.id == checklistId);
     if (index == -1) return;
     _checklists[index] =
         _checklists[index].copyWith(updatedAt: DateTime.now());
     _persistChecklists();
+  }
+
+  Future<void> toggleBookmark(String id) async {
+    final index = _checklists.indexWhere((c) => c.id == id);
+
+    if (index == -1) return;
+
+    _checklists[index] = _checklists[index].copyWith(
+      isBookmarked: !_checklists[index].isBookmarked,
+    );
+
+    await _persistChecklists();
+    notifyListeners();
+  }
+
+  List<Checklist> get bookmarkedChecklists {
+    return _checklists
+        .where((checklist) => checklist.isBookmarked)
+        .toList()
+      ..sort(
+        (a, b) => b.updatedAt.compareTo(a.updatedAt),
+      );
   }
 }

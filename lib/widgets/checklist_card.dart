@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:notepad/widgets/app_slidable.dart';
 
 import '../models/checklist.dart';
 
@@ -9,6 +11,8 @@ class ChecklistCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onDelete;
   final VoidCallback onRename;
+  final VoidCallback onShareTap;
+  final VoidCallback onBookmarkTap;
 
   const ChecklistCard({
     super.key,
@@ -18,52 +22,38 @@ class ChecklistCard extends StatelessWidget {
     required this.onTap,
     required this.onDelete,
     required this.onRename,
+    required this.onShareTap,
+    required this.onBookmarkTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final progress = totalCount == 0 ? 0.0 : checkedCount / totalCount;
+    final colors = theme.colorScheme;
 
-    return Dismissible(
-      key: ValueKey(checklist.id),
-      direction: DismissDirection.endToStart,
-      confirmDismiss: (_) async {
-        return await showDialog<bool>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Delete checklist?'),
-            content: Text(
-              'This will delete "${checklist.name}" and all $totalCount item${totalCount == 1 ? '' : 's'} in it.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Delete'),
-              ),
-            ],
-          ),
-        );
-      },
-      onDismissed: (_) => onDelete(),
-      background: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.errorContainer,
-          borderRadius: BorderRadius.circular(12),
+    final progress =
+        totalCount == 0 ? 0.0 : checkedCount / totalCount;
+
+    return AppSlidable(
+      bookmarkIcon: checklist.isBookmarked
+        ? Icons.bookmark
+        : Icons.bookmark_border,
+
+      onBookmark: onBookmarkTap,
+      onShare: onShareTap,
+      onDelete: onDelete,
+      additionalActions: [
+        AppSlidableAction(
+          onPressed: onRename,
+          backgroundColor: Colors.green,
+          foregroundColor: colors.onPrimary,
+          icon: Icons.edit,
         ),
-        child: Icon(Icons.delete, color: theme.colorScheme.onErrorContainer),
-      ),
-      child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      ],
+
+      child: Container(
+        color: colors.secondary,
         child: InkWell(
-          borderRadius: BorderRadius.circular(12),
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.all(14),
@@ -72,45 +62,59 @@ class ChecklistCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.checklist, color: theme.colorScheme.primary),
-                    const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         checklist.name,
-                        style: theme.textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w600),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    IconButton(
-                      visualDensity: VisualDensity.compact,
-                      icon: const Icon(Icons.edit_outlined),
-                      tooltip: 'Rename',
-                      onPressed: onRename,
-                    ),
                   ],
                 ),
-                const SizedBox(height: 10),
+
+                const SizedBox(height: 8),
+
                 Row(
                   children: [
                     Expanded(
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(6),
                         child: LinearProgressIndicator(
-                          value: totalCount == 0 ? 0 : progress,
+                          value: progress,
                           minHeight: 6,
                           backgroundColor:
-                              theme.colorScheme.surfaceContainerHighest,
+                              colors.surfaceContainerHighest,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(
+                            colors.primary,
+                          ),
                         ),
                       ),
                     ),
+
                     const SizedBox(width: 10),
+
                     Text(
                       '$checkedCount/$totalCount',
-                      style: theme.textTheme.bodySmall,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colors.onSecondary,
+                      ),
                     ),
+
+                    
                   ],
+                ),
+
+                const SizedBox(height: 8),
+
+                Text(
+                  DateFormat('MMM d, yyyy · h:mm a').format(checklist.updatedAt),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colors.onSecondary
+                  ),
                 ),
               ],
             ),

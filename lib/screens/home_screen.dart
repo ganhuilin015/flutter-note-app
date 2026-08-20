@@ -95,24 +95,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
 
-      floatingActionButton: _tabIndex == 2
-          ? null // Checklists tab has its own scaffold + FAB (create checklist)
-          : AppFloatingActionButton(
-              onPressed: () {
-                if (_tabIndex == 0) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const NoteEditScreen()),
-                  );
-                } else {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const ReminderEditScreen(),
-                    ),
-                  );
-                }
-              },
-            ),
-
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tabIndex,
         onDestinationSelected: (index) {
