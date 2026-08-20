@@ -17,8 +17,6 @@ class NotesProvider extends ChangeNotifier {
 
   String get searchQuery => _searchQuery;
 
-  /// Notes filtered by the current search query
-  /// and sorted with most recently updated first.
   List<Note> get filteredNotes {
     final query = _searchQuery.trim().toLowerCase();
 
@@ -37,7 +35,6 @@ class NotesProvider extends ChangeNotifier {
     return list;
   }
 
-  /// Bookmarked notes sorted with most recently updated first.
   List<Note> get bookmarkedNotes {
     final list = _notes
         .where((note) => note.isBookmarked)
@@ -106,11 +103,9 @@ class NotesProvider extends ChangeNotifier {
     );
 
     _notes.add(note);
-
     _persist();
-
     notifyListeners();
-
+    
     return note;
   }
 

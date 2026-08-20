@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:notepad/screens/notelist_screen.dart';
+import 'package:notepad/widgets/floating_action.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/notes_provider.dart';
 import '../providers/theme_provider.dart';
-import '../widgets/note_card.dart';
 import 'checklists_screen.dart';
 import 'note_edit_screen.dart';
 import 'reminder_edit_screen.dart';
@@ -84,27 +85,34 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+      
       body: IndexedStack(
         index: _tabIndex,
         children: [
-          _NotesList(bookmarkedOnly: _showBookmarkedOnly),
+          NotesList(bookmarkedOnly: _showBookmarkedOnly),
           const RemindersScreen(),
           const ChecklistsScreen(),
         ],
       ),
+
       floatingActionButton: _tabIndex == 2
           ? null // Checklists tab has its own scaffold + FAB (create checklist)
-          : FloatingActionButton(
-              onPressed: () => _tabIndex == 0
-                  ? Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const NoteEditScreen()),
-                    )
-                  : Navigator.of(context).push(
-                      MaterialPageRoute(
-                          builder: (_) => const ReminderEditScreen()),
+          : AppFloatingActionButton(
+              onPressed: () {
+                if (_tabIndex == 0) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const NoteEditScreen()),
+                  );
+                } else {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const ReminderEditScreen(),
                     ),
-              child: const Icon(Icons.add),
+                  );
+                }
+              },
             ),
+
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tabIndex,
         onDestinationSelected: (index) {
@@ -141,62 +149,5 @@ class _HomeScreenState extends State<HomeScreen> {
       default:
         return _showBookmarkedOnly ? 'Bookmarked Notes' : 'Notes';
     }
-  }
-}
-
-class _NotesList extends StatelessWidget {
-  final bool bookmarkedOnly;
-
-  const _NotesList({required this.bookmarkedOnly});
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<NotesProvider>(
-      builder: (context, provider, _) {
-        final notes = bookmarkedOnly
-            ? provider.bookmarkedNotes
-            : provider.filteredNotes;
-
-        if (notes.isEmpty) {
-          final query = provider.searchQuery;
-          String message;
-          if (bookmarkedOnly) {
-            message =
-                'No bookmarked notes yet.\nTap the bookmark icon on a note to save it here.';
-          } else if (query.isNotEmpty) {
-            message = 'No notes found for "$query"';
-          } else {
-            message = 'No notes yet.\nTap + to create your first note!';
-          }
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Text(
-                message,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ),
-          );
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.only(top: 8, bottom: 88),
-          itemCount: notes.length,
-          itemBuilder: (context, index) {
-            final note = notes[index];
-            return NoteCard(
-              note: note,
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => NoteEditScreen(note: note),
-                ),
-              ),
-              onBookmarkTap: () => provider.toggleBookmark(note.id),
-            );
-          },
-        );
-      },
-    );
   }
 }
