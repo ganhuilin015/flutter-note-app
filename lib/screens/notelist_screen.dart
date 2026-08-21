@@ -1,30 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:notepad/providers/notes_provider.dart';
+import 'package:notepad/providers/search_provider.dart';
 import 'package:notepad/screens/note_edit_screen.dart';
 import 'package:notepad/widgets/floating_action.dart';
 import 'package:notepad/widgets/note_card.dart';
 import 'package:provider/provider.dart';
 
 class NotesList extends StatelessWidget {
-
-  const NotesList({
-    super.key,
-  });
+  const NotesList({super.key});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
 
-    return Consumer<NotesProvider>(
-      builder: (context, provider, _) {
-        final notes = provider.filteredNotes;
+    return Consumer2<NotesProvider, SearchProvider>(
+      builder: (context, notesProvider, searchProvider, _) {
+        final query = searchProvider.query;
+        final notes = query.isEmpty
+          ? List.of(notesProvider.allNotes)
+          : notesProvider.allNotes.where((note) {
+              return note.title.toLowerCase().contains(query);
+            }).toList();
+
+        notes.sort(
+          (a, b) => b.updatedAt.compareTo(a.updatedAt),
+        );
 
         late Widget content;
 
         if (notes.isEmpty) {
-          final query = provider.searchQuery;
-
           String title;
           String description;
           IconData icon;
@@ -53,11 +58,7 @@ class NotesList extends StatelessWidget {
                       color: colors.primary,
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
-                      icon,
-                      color: colors.onPrimary,
-                      size: 30,
-                    ),
+                    child: Icon(icon, color: colors.onPrimary, size: 30),
                   ),
 
                   const SizedBox(height: 20),
@@ -84,9 +85,7 @@ class NotesList extends StatelessWidget {
               ),
             ),
           );
-        }
-
-        else {
+        } else {
           content = ListView(
             padding: const EdgeInsets.all(28),
             children: [
@@ -104,20 +103,18 @@ class NotesList extends StatelessWidget {
                         onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_) => NoteEditScreen(
-                                note: notes[i],
-                              ),
+                              builder: (_) => NoteEditScreen(note: notes[i]),
                             ),
                           );
                         },
                         onBookmarkTap: () {
-                          provider.toggleBookmark(notes[i].id);
+                          notesProvider.toggleBookmark(notes[i].id);
                         },
                         onShareTap: () {
                           // TODO: Share note
                         },
                         onDeleteTap: () {
-                          provider.deleteNote(notes[i].id);
+                          notesProvider.deleteNote(notes[i].id);
                         },
                       ),
 
@@ -140,11 +137,9 @@ class NotesList extends StatelessWidget {
 
           floatingActionButton: AppFloatingActionButton(
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const NoteEditScreen(),
-                ),
-              );
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const NoteEditScreen()));
             },
           ),
         );

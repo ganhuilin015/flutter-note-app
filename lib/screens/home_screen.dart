@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:notepad/providers/search_provider.dart';
 import 'package:notepad/screens/bookmarks_screen.dart';
 import 'package:notepad/screens/notelist_screen.dart';
+import 'package:notepad/widgets/search_bar.dart';
 import 'package:provider/provider.dart';
-import '../providers/notes_provider.dart';
 import '../providers/theme_provider.dart';
 import 'checklists_screen.dart';
 
@@ -18,7 +19,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _tabIndex = 0; // 0 = Notes, 1 = Reminders, 2 = Checklist, 3 = Bookmarks
   bool _isSearching = false;
-  bool _showBookmarkedOnly = false;
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -34,37 +34,32 @@ class _HomeScreenState extends State<HomeScreen> {
   void _stopSearch() {
     setState(() {
       _isSearching = false;
-      _searchController.clear();
     });
-    context.read<NotesProvider>().setSearchQuery('');
+    context.read<SearchProvider>().clear();
   }
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
-    final isNotesTab = _tabIndex == 0;
 
     return Scaffold(
       appBar: AppBar(
         title: _isSearching
-            ? TextField(
-                controller: _searchController,
-                autofocus: true,
-                decoration: const InputDecoration(
-                  hintText: 'Search notes by title...',
-                  border: InputBorder.none,
-                ),
-                style: const TextStyle(fontSize: 18),
-                onChanged: (value) =>
-                    context.read<NotesProvider>().setSearchQuery(value),
+            ? AppSearchBar(
+                hintText: _searchHint(),
               )
             : Text(_titleForTab(_tabIndex)),
         actions: [
-          if (isNotesTab)
-            IconButton(
-              icon: Icon(_isSearching ? Icons.close : Icons.search),
-              onPressed: _isSearching ? _stopSearch : _startSearch,
+          IconButton(
+            icon: Icon(
+              _isSearching
+                  ? Icons.close
+                  : Icons.search,
             ),
+            onPressed: _isSearching
+                ? _stopSearch
+                : _startSearch,
+          ),
           IconButton(
             icon: Icon(
               themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
@@ -105,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
           NavigationDestination(
             icon: Icon(Icons.checklist_outlined),
             selectedIcon: Icon(Icons.checklist),
-            label: 'Checklist',
+            label: 'Checklists',
           ),
           NavigationDestination(
             icon: Icon(Icons.bookmark_outline),
@@ -122,11 +117,30 @@ class _HomeScreenState extends State<HomeScreen> {
       case 1:
         return 'Reminders';
       case 2:
-        return 'Checklist';
+        return 'Checklists';
       case 3:
         return 'Bookmarks';
       default:
         return 'Notes';
+    }
+  }
+
+  String _searchHint() {
+    switch (_tabIndex) {
+      case 0:
+        return 'Search notes...';
+
+      case 1:
+        return 'Search reminders...';
+
+      case 2:
+        return 'Search checklists...';
+
+      case 3:
+        return 'Search bookmarks...';
+
+      default:
+        return 'Search...';
     }
   }
 }

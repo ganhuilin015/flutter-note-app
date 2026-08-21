@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:notepad/providers/search_provider.dart';
 import 'package:notepad/utils/checklist_dialogs.dart';
 import 'package:provider/provider.dart';
 
@@ -16,50 +17,62 @@ class BookmarksScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<NotesProvider, ChecklistProvider>(
-      builder: (context, notesProvider, checklistProvider, _) {
+    return Consumer3<NotesProvider, ChecklistProvider, SearchProvider>(
+      builder: (context, notesProvider, checklistProvider, searchProvider, _) {
         final notes = notesProvider.bookmarkedNotes;
         final checklists = checklistProvider.bookmarkedChecklists;
+        final query = searchProvider.query;
 
         if (notes.isEmpty && checklists.isEmpty) {
           return const _EmptyBookmarks();
         }
 
         final List<BookmarkItem> bookmarks = [
-          ...notes.map(
-            (note) => BookmarkItem.fromNote(note),
-          ),
+          ...notes.map((note) => BookmarkItem.fromNote(note)),
           ...checklists.map(
             (checklist) => BookmarkItem.fromChecklist(checklist),
           ),
         ];
 
-        bookmarks.sort(
-          (a, b) => b.updatedAt.compareTo(a.updatedAt),
-        );
+        final filteredBookmarks = query.isEmpty
+            ? List.of(bookmarks)
+            : bookmarks.where((bookmark) {
+                if (bookmark.note != null) {
+                  return bookmark.note!.title.toLowerCase().contains(
+                    query.toLowerCase(),
+                  );
+                }
+
+                if (bookmark.checklist != null) {
+                  return bookmark.checklist!.name.toLowerCase().contains(
+                    query.toLowerCase(),
+                  );
+                }
+                return false;
+              }).toList();
+
+        filteredBookmarks.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
         return ListView(
           padding: const EdgeInsets.all(28),
           children: [
             Container(
               decoration: BoxDecoration(
-                color: Theme.of(context)
-                    .colorScheme
-                    .surfaceContainerHighest,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(24),
               ),
               clipBehavior: Clip.antiAlias,
               child: Column(
                 children: [
-                  for (int i = 0; i < bookmarks.length; i++) ...[
+                  for (int i = 0; i < filteredBookmarks.length; i++) ...[
                     _buildBookmarkCard(
                       context,
-                      bookmarks[i],
+                      filteredBookmarks[i],
                       notesProvider,
                       checklistProvider,
                     ),
 
-                    if (i < bookmarks.length - 1)
+                    if (i < filteredBookmarks.length - 1)
                       Divider(
                         height: 0.5,
                         thickness: 0.25,
@@ -81,7 +94,6 @@ class BookmarksScreen extends StatelessWidget {
     NotesProvider notesProvider,
     ChecklistProvider checklistProvider,
   ) {
-
     if (bookmark.type == BookmarkType.note) {
       final note = bookmark.note!;
 
@@ -89,11 +101,9 @@ class BookmarksScreen extends StatelessWidget {
         note: note,
 
         onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => NoteEditScreen(note: note),
-            ),
-          );
+          Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => NoteEditScreen(note: note)));
         },
 
         onBookmarkTap: () {
@@ -115,42 +125,28 @@ class BookmarksScreen extends StatelessWidget {
     return ChecklistCard(
       checklist: checklist,
 
-      totalCount: checklistProvider.totalCount(
-        checklist.id,
-      ),
+      totalCount: checklistProvider.totalCount(checklist.id),
 
-      checkedCount: checklistProvider.checkedCount(
-        checklist.id,
-      ),
+      checkedCount: checklistProvider.checkedCount(checklist.id),
 
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => ChecklistDetailScreen(
-              checklistId: checklist.id,
-            ),
+            builder: (_) => ChecklistDetailScreen(checklistId: checklist.id),
           ),
         );
       },
 
       onRename: () {
-        ChecklistDialogs.promptRename(
-          context,
-          checklist.id,
-          checklist.name,
-        );
+        ChecklistDialogs.promptRename(context, checklist.id, checklist.name);
       },
 
       onDelete: () {
-        checklistProvider.deleteChecklist(
-          checklist.id,
-        );
+        checklistProvider.deleteChecklist(checklist.id);
       },
 
       onBookmarkTap: () {
-        checklistProvider.toggleBookmark(
-          checklist.id,
-        );
+        checklistProvider.toggleBookmark(checklist.id);
       },
 
       onShareTap: () {
@@ -160,10 +156,7 @@ class BookmarksScreen extends StatelessWidget {
   }
 }
 
-enum BookmarkType {
-  note,
-  checklist,
-}
+enum BookmarkType { note, checklist }
 
 class BookmarkItem {
   final BookmarkType type;
@@ -173,16 +166,16 @@ class BookmarkItem {
   final Checklist? checklist;
 
   BookmarkItem.fromNote(Note value)
-      : type = BookmarkType.note,
-        note = value,
-        checklist = null,
-        updatedAt = value.updatedAt;
+    : type = BookmarkType.note,
+      note = value,
+      checklist = null,
+      updatedAt = value.updatedAt;
 
   BookmarkItem.fromChecklist(Checklist value)
-      : type = BookmarkType.checklist,
-        note = null,
-        checklist = value,
-        updatedAt = value.updatedAt;
+    : type = BookmarkType.checklist,
+      note = null,
+      checklist = value,
+      updatedAt = value.updatedAt;
 }
 
 class _EmptyBookmarks extends StatelessWidget {

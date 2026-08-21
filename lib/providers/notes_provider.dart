@@ -11,29 +11,8 @@ class NotesProvider extends ChangeNotifier {
   static const Uuid _uuid = Uuid();
 
   List<Note> _notes = [];
-  String _searchQuery = '';
 
   List<Note> get allNotes => List.unmodifiable(_notes);
-
-  String get searchQuery => _searchQuery;
-
-  List<Note> get filteredNotes {
-    final query = _searchQuery.trim().toLowerCase();
-
-    final list = query.isEmpty
-        ? List<Note>.from(_notes)
-        : _notes
-            .where(
-              (note) => note.title.toLowerCase().contains(query),
-            )
-            .toList();
-
-    list.sort(
-      (a, b) => b.updatedAt.compareTo(a.updatedAt),
-    );
-
-    return list;
-  }
 
   List<Note> get bookmarkedNotes {
     final list = _notes
@@ -79,11 +58,6 @@ class NotesProvider extends ChangeNotifier {
     );
 
     await prefs.setString(_prefsKey, encoded);
-  }
-
-  void setSearchQuery(String query) {
-    _searchQuery = query;
-    notifyListeners();
   }
 
   Note createNote({

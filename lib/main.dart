@@ -3,6 +3,7 @@ import 'package:notepad/models/checklist.dart';
 import 'package:notepad/models/checklist_item.dart';
 import 'package:notepad/models/note.dart';
 import 'package:notepad/models/reminder.dart';
+import 'package:notepad/providers/search_provider.dart';
 import 'package:notepad/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
@@ -42,6 +43,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => NotesProvider()),
         ChangeNotifierProvider(create: (_) => ChecklistProvider()),
+        ChangeNotifierProvider(create: (_) => SearchProvider()),
         ChangeNotifierProvider(create: (_) => ReminderProvider()..resyncAll()),
       ],
       child: Consumer<ThemeProvider>(

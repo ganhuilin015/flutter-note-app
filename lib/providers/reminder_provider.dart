@@ -14,7 +14,6 @@ class ReminderProvider extends ChangeNotifier {
 
   List<Reminder> get all => List.unmodifiable(_reminders);
 
-  /// Upcoming (not completed, not yet past), soonest first.
   List<Reminder> get upcoming {
     final list = _reminders
         .where((r) => !r.isCompleted && !r.isPast)
@@ -23,7 +22,6 @@ class ReminderProvider extends ChangeNotifier {
     return list;
   }
 
-  /// Past-due but not marked completed, most recent first.
   List<Reminder> get overdue {
     final list =
         _reminders.where((r) => !r.isCompleted && r.isPast).toList();

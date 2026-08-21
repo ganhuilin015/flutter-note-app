@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:notepad/providers/search_provider.dart';
 import 'package:notepad/utils/checklist_dialogs.dart';
 import 'package:notepad/widgets/floating_action.dart';
 import 'package:provider/provider.dart';
@@ -21,9 +22,7 @@ class ChecklistsScreen extends StatelessWidget {
           controller: controller,
           autofocus: true,
           textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(
-            hintText: 'e.g. Packing List',
-          ),
+          decoration: const InputDecoration(hintText: 'e.g. Packing List'),
           onSubmitted: (value) {
             Navigator.pop(ctx, value);
           },
@@ -47,25 +46,29 @@ class ChecklistsScreen extends StatelessWidget {
       return;
     }
 
-    final checklist =
-        await context.read<ChecklistProvider>().addChecklist(name);
+    final checklist = await context.read<ChecklistProvider>().addChecklist(
+      name,
+    );
 
     if (!context.mounted) return;
 
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => ChecklistDetailScreen(
-          checklistId: checklist.id,
-        ),
+        builder: (_) => ChecklistDetailScreen(checklistId: checklist.id),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ChecklistProvider>(
-      builder: (context, provider, _) {
-        final checklists = provider.checklists;
+    return Consumer2<ChecklistProvider, SearchProvider>(
+      builder: (context, checklistProvider, searchProvider, _) {
+        final query = searchProvider.query;
+        final checklists = query.isEmpty
+            ? List.of(checklistProvider.checklists)
+            : checklistProvider.checklists.where((checklist) {
+                return checklist.name.toLowerCase().contains(query);
+              }).toList();
 
         late Widget content;
 
@@ -117,17 +120,13 @@ class ChecklistsScreen extends StatelessWidget {
               ),
             ),
           );
-        }
-
-        else {
+        } else {
           content = ListView(
             padding: const EdgeInsets.all(28),
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .surfaceContainerHighest,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(24),
                 ),
                 clipBehavior: Clip.antiAlias,
@@ -136,16 +135,13 @@ class ChecklistsScreen extends StatelessWidget {
                     for (int i = 0; i < checklists.length; i++) ...[
                       ChecklistCard(
                         checklist: checklists[i],
-                        totalCount:
-                            provider.totalCount(checklists[i].id),
-                        checkedCount:
-                            provider.checkedCount(checklists[i].id),
+                        totalCount: checklistProvider.totalCount(checklists[i].id),
+                        checkedCount: checklistProvider.checkedCount(checklists[i].id),
 
                         onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_) =>
-                                  ChecklistDetailScreen(
+                              builder: (_) => ChecklistDetailScreen(
                                 checklistId: checklists[i].id,
                               ),
                             ),
@@ -161,11 +157,11 @@ class ChecklistsScreen extends StatelessWidget {
                         },
 
                         onDelete: () {
-                          provider.deleteChecklist(checklists[i].id);
+                          checklistProvider.deleteChecklist(checklists[i].id);
                         },
 
                         onBookmarkTap: () {
-                          provider.toggleBookmark(checklists[i].id);
+                          checklistProvider.toggleBookmark(checklists[i].id);
                         },
 
                         onShareTap: () {
@@ -177,9 +173,7 @@ class ChecklistsScreen extends StatelessWidget {
                         Divider(
                           height: 0.5,
                           thickness: 0.25,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSecondary,
+                          color: Theme.of(context).colorScheme.onSecondary,
                         ),
                     ],
                   ],
