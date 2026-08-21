@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:notepad/screens/bookmarks_screen.dart';
 import 'package:notepad/screens/notelist_screen.dart';
-import 'package:notepad/widgets/floating_action.dart';
 import 'package:provider/provider.dart';
-
 import '../providers/notes_provider.dart';
 import '../providers/theme_provider.dart';
 import 'checklists_screen.dart';
-import 'note_edit_screen.dart';
-import 'reminder_edit_screen.dart';
+
 import 'reminders_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -18,7 +16,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _tabIndex = 0; // 0 = Notes, 1 = Reminders, 2 = Checklist
+  int _tabIndex = 0; // 0 = Notes, 1 = Reminders, 2 = Checklist, 3 = Bookmarks
   bool _isSearching = false;
   bool _showBookmarkedOnly = false;
   final TextEditingController _searchController = TextEditingController();
@@ -62,15 +60,6 @@ class _HomeScreenState extends State<HomeScreen> {
               )
             : Text(_titleForTab(_tabIndex)),
         actions: [
-          if (isNotesTab && !_isSearching)
-            IconButton(
-              icon: Icon(
-                _showBookmarkedOnly ? Icons.bookmark : Icons.bookmark_border,
-              ),
-              tooltip: 'Show bookmarked only',
-              onPressed: () =>
-                  setState(() => _showBookmarkedOnly = !_showBookmarkedOnly),
-            ),
           if (isNotesTab)
             IconButton(
               icon: Icon(_isSearching ? Icons.close : Icons.search),
@@ -85,13 +74,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      
+
       body: IndexedStack(
         index: _tabIndex,
         children: [
-          NotesList(bookmarkedOnly: _showBookmarkedOnly),
+          const NotesList(),
           const RemindersScreen(),
           const ChecklistsScreen(),
+          const BookmarksScreen(),
         ],
       ),
 
@@ -117,6 +107,11 @@ class _HomeScreenState extends State<HomeScreen> {
             selectedIcon: Icon(Icons.checklist),
             label: 'Checklist',
           ),
+          NavigationDestination(
+            icon: Icon(Icons.bookmark_outline),
+            selectedIcon: Icon(Icons.bookmark),
+            label: 'Bookmarks',
+          ),
         ],
       ),
     );
@@ -128,8 +123,10 @@ class _HomeScreenState extends State<HomeScreen> {
         return 'Reminders';
       case 2:
         return 'Checklist';
+      case 3:
+        return 'Bookmarks';
       default:
-        return _showBookmarkedOnly ? 'Bookmarked Notes' : 'Notes';
+        return 'Notes';
     }
   }
 }

@@ -6,11 +6,9 @@ import 'package:notepad/widgets/note_card.dart';
 import 'package:provider/provider.dart';
 
 class NotesList extends StatelessWidget {
-  final bool bookmarkedOnly;
 
   const NotesList({
     super.key,
-    required this.bookmarkedOnly,
   });
 
   @override
@@ -20,9 +18,7 @@ class NotesList extends StatelessWidget {
 
     return Consumer<NotesProvider>(
       builder: (context, provider, _) {
-        final notes = bookmarkedOnly
-            ? provider.bookmarkedNotes
-            : provider.filteredNotes;
+        final notes = provider.filteredNotes;
 
         late Widget content;
 
@@ -33,12 +29,7 @@ class NotesList extends StatelessWidget {
           String description;
           IconData icon;
 
-          if (bookmarkedOnly) {
-            title = 'No bookmarked notes';
-            description =
-                'Bookmark a note to save it here for quick access.';
-            icon = Icons.bookmark_outline;
-          } else if (query.isNotEmpty) {
+          if (query.isNotEmpty) {
             title = 'No notes found';
             description = 'Try searching with a different keyword.';
             icon = Icons.search;

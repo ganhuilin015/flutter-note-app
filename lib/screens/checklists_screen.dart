@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:notepad/utils/checklist_dialogs.dart';
 import 'package:notepad/widgets/floating_action.dart';
 import 'package:provider/provider.dart';
 
@@ -58,45 +59,6 @@ class ChecklistsScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Future<void> _promptRename(
-    BuildContext context,
-    String id,
-    String currentName,
-  ) async {
-    final controller = TextEditingController(text: currentName);
-
-    final name = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Rename checklist'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          textCapitalization: TextCapitalization.words,
-          onSubmitted: (value) => Navigator.pop(ctx, value),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, controller.text),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-
-    controller.dispose();
-
-    if (name == null || name.trim().isEmpty || !context.mounted) {
-      return;
-    }
-
-    await context.read<ChecklistProvider>().renameChecklist(id, name);
   }
 
   @override
@@ -191,7 +153,7 @@ class ChecklistsScreen extends StatelessWidget {
                         },
 
                         onRename: () {
-                          _promptRename(
+                          ChecklistDialogs.promptRename(
                             context,
                             checklists[i].id,
                             checklists[i].name,
