@@ -15,13 +15,9 @@ class NotesProvider extends ChangeNotifier {
   List<Note> get allNotes => List.unmodifiable(_notes);
 
   List<Note> get bookmarkedNotes {
-    final list = _notes
-        .where((note) => note.isBookmarked)
-        .toList();
+    final list = _notes.where((note) => note.isBookmarked).toList();
 
-    list.sort(
-      (a, b) => b.updatedAt.compareTo(a.updatedAt),
-    );
+    list.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
     return list;
   }
@@ -39,11 +35,7 @@ class NotesProvider extends ChangeNotifier {
       final List decoded = jsonDecode(raw) as List;
 
       _notes = decoded
-          .map(
-            (e) => Note.fromJson(
-              e as Map<String, dynamic>,
-            ),
-          )
+          .map((e) => Note.fromJson(e as Map<String, dynamic>))
           .toList();
     }
 
@@ -79,7 +71,7 @@ class NotesProvider extends ChangeNotifier {
     _notes.add(note);
     _persist();
     notifyListeners();
-    
+
     return note;
   }
 
@@ -89,9 +81,7 @@ class NotesProvider extends ChangeNotifier {
     String? content,
     bool? isBookmarked,
   }) async {
-    final index = _notes.indexWhere(
-      (note) => note.id == id,
-    );
+    final index = _notes.indexWhere((note) => note.id == id);
 
     if (index == -1) return;
 
@@ -110,9 +100,7 @@ class NotesProvider extends ChangeNotifier {
   }
 
   Future<void> toggleBookmark(String id) async {
-    final index = _notes.indexWhere(
-      (note) => note.id == id,
-    );
+    final index = _notes.indexWhere((note) => note.id == id);
 
     if (index == -1) return;
 
@@ -127,9 +115,7 @@ class NotesProvider extends ChangeNotifier {
   }
 
   Future<void> deleteNote(String id) async {
-    _notes.removeWhere(
-      (note) => note.id == id,
-    );
+    _notes.removeWhere((note) => note.id == id);
 
     await _persist();
 

@@ -41,7 +41,6 @@ class _ChecklistDetailScreenState extends State<ChecklistDetailScreen> {
       builder: (context, provider, _) {
         final checklist = provider.checklistById(widget.checklistId);
 
-        // Checklist was deleted (e.g. swiped away) while this screen was open.
         if (checklist == null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (Navigator.of(context).canPop()) Navigator.of(context).pop();

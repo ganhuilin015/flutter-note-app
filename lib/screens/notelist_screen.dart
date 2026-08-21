@@ -136,6 +136,7 @@ class NotesList extends StatelessWidget {
           body: content,
 
           floatingActionButton: AppFloatingActionButton(
+            tag: 'add_note',
             onPressed: () {
               Navigator.of(
                 context,

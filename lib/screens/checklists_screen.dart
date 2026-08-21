@@ -187,6 +187,7 @@ class ChecklistsScreen extends StatelessWidget {
           body: content,
 
           floatingActionButton: AppFloatingActionButton(
+            tag: 'add_checklist',
             onPressed: () => _promptNewChecklist(context),
           ),
         );

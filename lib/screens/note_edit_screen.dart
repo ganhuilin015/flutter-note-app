@@ -5,12 +5,9 @@ import '../models/note.dart';
 import '../providers/notes_provider.dart';
 
 class NoteEditScreen extends StatefulWidget {
-  final Note? note; // null when creating a new note
+  final Note? note;
 
-  const NoteEditScreen({
-    super.key,
-    this.note,
-  });
+  const NoteEditScreen({super.key, this.note});
 
   @override
   State<NoteEditScreen> createState() => _NoteEditScreenState();
@@ -21,6 +18,7 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
   late final TextEditingController _contentController;
 
   bool _isBookmarked = false;
+  String? _autoSavedNoteId;
 
   bool get _isEditing => widget.note != null;
 
@@ -28,80 +26,95 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
   void initState() {
     super.initState();
 
-    _titleController = TextEditingController(
-      text: widget.note?.title ?? '',
-    );
+    _titleController = TextEditingController(text: widget.note?.title ?? '');
 
     _contentController = TextEditingController(
       text: widget.note?.content ?? '',
     );
 
     _isBookmarked = widget.note?.isBookmarked ?? false;
+    _titleController.addListener(_autoSave);
+    _contentController.addListener(_autoSave);
   }
 
   @override
   void dispose() {
+    _titleController.removeListener(_autoSave);
+    _contentController.removeListener(_autoSave);
+
     _titleController.dispose();
     _contentController.dispose();
     super.dispose();
   }
 
-  void _save() {
+  void _autoSave() {
     final title = _titleController.text.trim();
-    final content = _contentController.text.trim();
+    final content = _contentController.text;
 
-    // Don't save completely empty notes.
-    if (title.isEmpty && content.isEmpty) {
-      Navigator.of(context).pop();
+    if (title.isEmpty && content.trim().isEmpty) {
       return;
     }
 
     final provider = context.read<NotesProvider>();
 
+    final finalTitle = title.isEmpty ? 'Untitled' : title;
+
     if (_isEditing) {
       provider.updateNote(
         widget.note!.id,
-        title: title.isEmpty ? 'Untitled' : title,
+        title: finalTitle,
         content: content,
         isBookmarked: _isBookmarked,
       );
     } else {
-      provider.createNote(
-        title: title.isEmpty ? 'Untitled' : title,
-        content: content,
-        isBookmarked: _isBookmarked,
-      );
-    }
+      if (_autoSavedNoteId == null) {
+        final note = provider.createNote(
+          title: finalTitle,
+          content: content,
+          isBookmarked: _isBookmarked,
+        );
 
-    Navigator.of(context).pop();
+        _autoSavedNoteId = note.id;
+      } else {
+        provider.updateNote(
+          _autoSavedNoteId!,
+          title: finalTitle,
+          content: content,
+          isBookmarked: _isBookmarked,
+        );
+      }
+    }
   }
 
   void _delete() {
     if (!_isEditing) return;
 
-    context.read<NotesProvider>().deleteNote(
-      widget.note!.id,
-    );
+    context.read<NotesProvider>().deleteNote(widget.note!.id);
 
     Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
+    final themeColors = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          _isEditing ? 'Edit Note' : 'New Note',
-        ),
         actions: [
           IconButton(
             icon: Icon(
-              _isBookmarked
-                  ? Icons.bookmark
-                  : Icons.bookmark_border,
+              _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+              color: _isBookmarked ? themeColors.primary : null,
             ),
             tooltip: 'Bookmark',
             onPressed: () {
+              final noteId = _isEditing
+                ? widget.note!.id
+                : _autoSavedNoteId;
+
+              if (noteId == null) return;
+              context.read<NotesProvider>().toggleBookmark(noteId);
+
               setState(() {
                 _isBookmarked = !_isBookmarked;
               });
@@ -116,40 +129,43 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
             ),
 
           IconButton(
-            icon: const Icon(Icons.check),
-            tooltip: 'Save',
-            onPressed: _save,
+            icon: const Icon(Icons.share),
+            tooltip: 'Share',
+            onPressed: () {
+              //TODO: share function
+            },
           ),
         ],
       ),
 
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            TextField(
-              controller: _titleController,
-              style: Theme.of(context).textTheme.titleLarge,
-              decoration: const InputDecoration(
-                hintText: 'Title',
-                border: InputBorder.none,
+      body: Padding(
+        padding: EdgeInsets.all(10),
+        child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 25),
+            children: [
+              TextField(
+                controller: _titleController,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                decoration: const InputDecoration(
+                  hintText: 'Title',
+                  border: InputBorder.none,
+                ),
+                textCapitalization: TextCapitalization.sentences,
               ),
-              textCapitalization: TextCapitalization.sentences,
-            ),
 
-            const Divider(height: 24),
-
-            TextField(
-              controller: _contentController,
-              maxLines: null,
-              minLines: 8,
-              decoration: const InputDecoration(
-                hintText: 'Start writing...',
-                border: InputBorder.none,
+              TextField(
+                controller: _contentController,
+                maxLines: null,
+                minLines: 8,
+                decoration: const InputDecoration(
+                  hintText: 'Start writing...',
+                  border: InputBorder.none,
+                ),
+                textCapitalization: TextCapitalization.sentences,
               ),
-              textCapitalization: TextCapitalization.sentences,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
