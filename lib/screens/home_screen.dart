@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:notepad/providers/search_provider.dart';
 import 'package:notepad/screens/bookmarks_screen.dart';
 import 'package:notepad/screens/notelist_screen.dart';
+import 'package:notepad/screens/settings_screen.dart';
 import 'package:notepad/widgets/search_bar.dart';
 import 'package:provider/provider.dart';
-import '../providers/theme_provider.dart';
 import 'checklists_screen.dart';
 
 import 'reminders_screen.dart';
@@ -40,8 +40,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
-
     return Scaffold(
       appBar: AppBar(
         title: _isSearching
@@ -61,11 +59,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 : _startSearch,
           ),
           IconButton(
-            icon: Icon(
-              themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
-            ),
-            tooltip: 'Toggle theme',
-            onPressed: () => themeProvider.toggleTheme(),
+            icon: const Icon(Icons.menu),
+            tooltip: 'Settings',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const SettingsScreen(),
+                ),
+              );
+            },
           ),
         ],
       ),
