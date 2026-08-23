@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:notepad/providers/search_provider.dart';
-import 'package:notepad/utils/checklist_dialogs.dart';
 import 'package:notepad/widgets/floating_action.dart';
 import 'package:provider/provider.dart';
 
@@ -11,50 +10,17 @@ import 'checklist_detail_screen.dart';
 class ChecklistsScreen extends StatelessWidget {
   const ChecklistsScreen({super.key});
 
-  Future<void> _promptNewChecklist(BuildContext context) async {
-    final controller = TextEditingController();
-
-    final name = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('New checklist'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(hintText: 'e.g. Packing List'),
-          onSubmitted: (value) {
-            Navigator.pop(ctx, value);
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, controller.text),
-            child: const Text('Create'),
-          ),
-        ],
-      ),
-    );
-
-    controller.dispose();
-
-    if (name == null || name.trim().isEmpty || !context.mounted) {
-      return;
-    }
-
-    final checklist = await context.read<ChecklistProvider>().addChecklist(
-      name,
-    );
+  Future<void> _createChecklist(BuildContext context) async {
+    final checklist =
+        await context.read<ChecklistProvider>().addChecklist('');
 
     if (!context.mounted) return;
 
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => ChecklistDetailScreen(checklistId: checklist.id),
+        builder: (_) => ChecklistDetailScreen(
+          checklistId: checklist.id,
+        ),
       ),
     );
   }
@@ -148,14 +114,6 @@ class ChecklistsScreen extends StatelessWidget {
                           );
                         },
 
-                        onRename: () {
-                          ChecklistDialogs.promptRename(
-                            context,
-                            checklists[i].id,
-                            checklists[i].name,
-                          );
-                        },
-
                         onDelete: () {
                           checklistProvider.deleteChecklist(checklists[i].id);
                         },
@@ -188,7 +146,7 @@ class ChecklistsScreen extends StatelessWidget {
 
           floatingActionButton: AppFloatingActionButton(
             tag: 'add_checklist',
-            onPressed: () => _promptNewChecklist(context),
+            onPressed: () => _createChecklist(context),
           ),
         );
       },

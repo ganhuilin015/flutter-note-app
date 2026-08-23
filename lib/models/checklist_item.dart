@@ -22,6 +22,9 @@ class ChecklistItem extends HiveObject {
   @HiveField(5)
   DateTime createdAt;
 
+  @HiveField(6)
+  bool isCheckbox;
+
   ChecklistItem({
     required this.id,
     required this.checklistId,
@@ -29,12 +32,14 @@ class ChecklistItem extends HiveObject {
     this.quantity = '',
     this.isChecked = false,
     required this.createdAt,
+    this.isCheckbox = true,
   });
 
   ChecklistItem copyWith({
     String? name,
     String? quantity,
     bool? isChecked,
+    bool? isCheckbox,
   }) {
     return ChecklistItem(
       id: id,
@@ -43,6 +48,7 @@ class ChecklistItem extends HiveObject {
       quantity: quantity ?? this.quantity,
       isChecked: isChecked ?? this.isChecked,
       createdAt: createdAt,
+      isCheckbox: isCheckbox ?? this.isCheckbox,
     );
   }
 
@@ -53,14 +59,18 @@ class ChecklistItem extends HiveObject {
         'quantity': quantity,
         'isChecked': isChecked,
         'createdAt': createdAt.toIso8601String(),
+        'isCheckbox': isCheckbox,
       };
 
-  factory ChecklistItem.fromJson(Map<String, dynamic> json) => ChecklistItem(
-        id: json['id'] as String,
-        checklistId: json['checklistId'] as String,
-        name: json['name'] as String? ?? '',
-        quantity: json['quantity'] as String? ?? '',
-        isChecked: json['isChecked'] as bool? ?? false,
-        createdAt: DateTime.parse(json['createdAt'] as String),
-      );
+  factory ChecklistItem.fromJson(Map<String, dynamic> json) {
+    return ChecklistItem(
+      id: json['id'] as String,
+      checklistId: json['checklistId'] as String,
+      name: json['name'] as String? ?? '',
+      quantity: json['quantity'] as String? ?? '',
+      isChecked: json['isChecked'] as bool? ?? false,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      isCheckbox: json['isCheckbox'] as bool? ?? true,
+    );
+  }
 }

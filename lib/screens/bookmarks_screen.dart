@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:notepad/providers/search_provider.dart';
-import 'package:notepad/utils/checklist_dialogs.dart';
 import 'package:provider/provider.dart';
 
 import '../models/note.dart';
@@ -135,10 +134,6 @@ class BookmarksScreen extends StatelessWidget {
             builder: (_) => ChecklistDetailScreen(checklistId: checklist.id),
           ),
         );
-      },
-
-      onRename: () {
-        ChecklistDialogs.promptRename(context, checklist.id, checklist.name);
       },
 
       onDelete: () {

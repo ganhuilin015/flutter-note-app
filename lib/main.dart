@@ -29,6 +29,7 @@ Future<void> main() async {
   await Hive.openBox<Note>('notes');
   await Hive.openBox<Reminder>('reminders');
   await Hive.openBox<ChecklistItem>('checklist_items');
+  await Hive.openBox('theme');
 
   runApp(const MyApp());
 }

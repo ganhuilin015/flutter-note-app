@@ -50,7 +50,7 @@ class SettingsScreen extends StatelessWidget {
                   leading: Icon(isDark ? Icons.dark_mode : Icons.light_mode),
                   title: Text(isDark ? 'Dark Mode' : 'Light Mode'),
                   onTap: () {
-                    theme.toggleTheme();
+                    theme.toggleTheme(!isDark);
                   },
                 ),
               ],

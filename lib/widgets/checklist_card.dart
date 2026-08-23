@@ -10,7 +10,6 @@ class ChecklistCard extends StatelessWidget {
   final int checkedCount;
   final VoidCallback onTap;
   final VoidCallback onDelete;
-  final VoidCallback onRename;
   final VoidCallback onShareTap;
   final VoidCallback onBookmarkTap;
 
@@ -21,7 +20,6 @@ class ChecklistCard extends StatelessWidget {
     required this.checkedCount,
     required this.onTap,
     required this.onDelete,
-    required this.onRename,
     required this.onShareTap,
     required this.onBookmarkTap,
   });
@@ -42,14 +40,6 @@ class ChecklistCard extends StatelessWidget {
       onBookmark: onBookmarkTap,
       onShare: onShareTap,
       onDelete: onDelete,
-      additionalActions: [
-        AppSlidableAction(
-          onPressed: onRename,
-          backgroundColor: Colors.green,
-          foregroundColor: colors.onPrimary,
-          icon: Icons.edit,
-        ),
-      ],
 
       child: Container(
         color: colors.secondary,

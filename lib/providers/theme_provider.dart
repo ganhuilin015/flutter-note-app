@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hive_ce/hive.dart';
 
 class ThemeProvider extends ChangeNotifier {
-  static const String _prefsKey = 'theme_mode';
+  static const String _key = 'themeMode';
+  static const String _boxName = 'theme';
+  Box get _box => Hive.box(_boxName);
 
   ThemeMode _themeMode = ThemeMode.system;
   ThemeMode get themeMode => _themeMode;
@@ -10,35 +12,59 @@ class ThemeProvider extends ChangeNotifier {
   bool get isDarkMode => _themeMode == ThemeMode.dark;
 
   ThemeProvider() {
-    _loadTheme();
+    _loadFromHive();
   }
 
-  Future<void> _loadTheme() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? saved = prefs.getString(_prefsKey);
-    if (saved == 'dark') {
-      _themeMode = ThemeMode.dark;
-    } else if (saved == 'light') {
-      _themeMode = ThemeMode.light;
-    } else {
-      _themeMode = ThemeMode.system;
+  void _loadFromHive() {
+    final stored = _box.get(_key, defaultValue: 'system');
+
+    switch (stored) {
+      case 'dark':
+        _themeMode = ThemeMode.dark;
+        break;
+      case 'light':
+        _themeMode = ThemeMode.light;
+        break;
+      default:
+        _themeMode = ThemeMode.system;
     }
-    notifyListeners();
+  }
+
+  bool isDark(BuildContext context) {
+    if (_themeMode == ThemeMode.system) {
+      return MediaQuery.of(context).platformBrightness == Brightness.dark;
+    }
+    return _themeMode == ThemeMode.dark;
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
     _themeMode = mode;
     notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_prefsKey, mode.name);
   }
 
-  Future<void> toggleTheme() async {
+  void toggleTheme(bool isDark) async {
 
-    if (_themeMode == ThemeMode.dark) {
-      await setThemeMode(ThemeMode.light);
-    } else {
-      await setThemeMode(ThemeMode.dark);
+    _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
+
+    _saveToHive();
+    notifyListeners();
+  }
+
+  void _saveToHive() {
+    String value;
+
+    switch (_themeMode) {
+      case ThemeMode.dark:
+        value = 'dark';
+        break;
+      case ThemeMode.light:
+        value = 'light';
+        break;
+      default:
+        value = 'system';
     }
+
+    _box.put(_key, value);
   }
+
 }
