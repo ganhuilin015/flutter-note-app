@@ -11,7 +11,7 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeProvider>();
     final themeColor = Theme.of(context).colorScheme;
-    final isDark = theme.isDarkMode;
+    final isDark = theme.isDark(context);
 
     Future<void> openPrivacy() async {
       final url = Uri.parse('https://ganhuilin015.github.io/timer-legal/');

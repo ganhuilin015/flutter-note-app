@@ -6,12 +6,16 @@ import '../models/reminder.dart';
 import '../providers/reminder_provider.dart';
 
 class ReminderEditScreen extends StatefulWidget {
-  final Reminder? reminder; // null when creating a new reminder
+  final Reminder? reminder;
 
-  const ReminderEditScreen({super.key, this.reminder});
+  const ReminderEditScreen({
+    super.key,
+    this.reminder,
+  });
 
   @override
-  State<ReminderEditScreen> createState() => _ReminderEditScreenState();
+  State<ReminderEditScreen> createState() =>
+      _ReminderEditScreenState();
 }
 
 class _ReminderEditScreenState extends State<ReminderEditScreen> {
@@ -24,12 +28,19 @@ class _ReminderEditScreenState extends State<ReminderEditScreen> {
   @override
   void initState() {
     super.initState();
-    _titleController =
-        TextEditingController(text: widget.reminder?.title ?? '');
-    _descController =
-        TextEditingController(text: widget.reminder?.description ?? '');
+
+    _titleController = TextEditingController(
+      text: widget.reminder?.title ?? '',
+    );
+
+    _descController = TextEditingController(
+      text: widget.reminder?.description ?? '',
+    );
+
     _dateTime = widget.reminder?.dateTime ??
-        DateTime.now().add(const Duration(hours: 1));
+        DateTime.now().add(
+          const Duration(hours: 1),
+        );
   }
 
   @override
@@ -41,13 +52,20 @@ class _ReminderEditScreenState extends State<ReminderEditScreen> {
 
   Future<void> _pickDate() async {
     final now = DateTime.now();
+
     final date = await showDatePicker(
       context: context,
-      initialDate: _dateTime.isBefore(now) ? now : _dateTime,
+      initialDate: _dateTime.isBefore(now)
+          ? now
+          : _dateTime,
       firstDate: now,
-      lastDate: now.add(const Duration(days: 365 * 5)),
+      lastDate: now.add(
+        const Duration(days: 365 * 5),
+      ),
     );
+
     if (date == null) return;
+
     setState(() {
       _dateTime = DateTime(
         date.year,
@@ -62,9 +80,13 @@ class _ReminderEditScreenState extends State<ReminderEditScreen> {
   Future<void> _pickTime() async {
     final time = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.fromDateTime(_dateTime),
+      initialTime: TimeOfDay.fromDateTime(
+        _dateTime,
+      ),
     );
+
     if (time == null) return;
+
     setState(() {
       _dateTime = DateTime(
         _dateTime.year,
@@ -78,34 +100,54 @@ class _ReminderEditScreenState extends State<ReminderEditScreen> {
 
   Future<void> _save() async {
     final title = _titleController.text.trim();
+
     if (title.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a title')),
+        const SnackBar(
+          content: Text('Please enter a title'),
+        ),
       );
       return;
     }
+
+    // Check if the reminder is in the past.
     if (_dateTime.isBefore(DateTime.now())) {
       final proceed = await showDialog<bool>(
         context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Date is in the past'),
-          content: const Text(
-            'This reminder time has already passed, so no notification will be scheduled. Save anyway?',
-          ),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Cancel')),
-            TextButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Save anyway')),
-          ],
-        ),
+        builder: (ctx) {
+          return AlertDialog(
+            title: const Text(
+              'Date is in the past',
+            ),
+            content: const Text(
+              'This reminder time has already passed, '
+              'so no notification will be scheduled. '
+              'Save anyway?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop(false);
+                },
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop(true);
+                },
+                child: const Text('Save anyway'),
+              ),
+            ],
+          );
+        },
       );
+
       if (proceed != true) return;
     }
 
-    final provider = context.read<ReminderProvider>();
+    final provider =
+        context.read<ReminderProvider>();
+
     if (_isEditing) {
       await provider.updateReminder(
         widget.reminder!.id,
@@ -120,85 +162,249 @@ class _ReminderEditScreenState extends State<ReminderEditScreen> {
         dateTime: _dateTime,
       );
     }
-    if (mounted) Navigator.of(context).pop();
+
+    if (!mounted) return;
+
+    Navigator.of(context).pop();
   }
 
   void _delete() {
     if (!_isEditing) return;
-    context.read<ReminderProvider>().deleteReminder(widget.reminder!.id);
+
+    context
+        .read<ReminderProvider>()
+        .deleteReminder(widget.reminder!.id);
+
     Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Reminder' : 'New Reminder'),
         actions: [
           if (_isEditing)
             IconButton(
-              icon: const Icon(Icons.delete_outline),
+              icon: const Icon(
+                Icons.delete_outline,
+              ),
               tooltip: 'Delete',
               onPressed: _delete,
             ),
+
+          // Share
           IconButton(
-            icon: const Icon(Icons.check),
+            icon: const Icon(
+              Icons.share,
+            ),
+            tooltip: 'Share',
+            onPressed: () {
+              // TODO: implement sharing
+            },
+          ),
+
+          // Confirm / Save
+          IconButton(
+            icon: const Icon(
+              Icons.check,
+            ),
             tooltip: 'Save',
             onPressed: _save,
           ),
         ],
       ),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            TextField(
-              controller: _titleController,
-              style: Theme.of(context).textTheme.titleLarge,
-              decoration: const InputDecoration(
-                hintText: 'Reminder title',
-                border: InputBorder.none,
-              ),
-              textCapitalization: TextCapitalization.sentences,
+
+      body: Padding(
+        padding: const EdgeInsets.all(10),
+        child: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 25,
             ),
-            const Divider(height: 24),
-            TextField(
-              controller: _descController,
-              maxLines: null,
-              minLines: 3,
-              decoration: const InputDecoration(
-                hintText: 'Add a note (optional)...',
-                border: InputBorder.none,
+            children: [
+
+              TextField(
+                controller: _titleController,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                decoration: const InputDecoration(
+                  hintText: 'Title',
+                  border: InputBorder.none,
+                ),
+                textCapitalization:
+                    TextCapitalization.sentences,
               ),
-              textCapitalization: TextCapitalization.sentences,
-            ),
-            const Divider(height: 32),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.calendar_today),
-                title: const Text('Date'),
-                subtitle: Text(DateFormat('EEE, MMM d, yyyy').format(_dateTime)),
+
+              TextField(
+                controller: _descController,
+                maxLines: null,
+                minLines: 8,
+                keyboardType:
+                    TextInputType.multiline,
+                textInputAction:
+                    TextInputAction.newline,
+                decoration: const InputDecoration(
+                  hintText: 'Start writing...',
+                  border: InputBorder.none,
+                ),
+                textCapitalization:
+                    TextCapitalization.sentences,
+              ),
+
+              const SizedBox(height: 24),
+
+              InkWell(
+                borderRadius:
+                    BorderRadius.circular(12),
                 onTap: _pickDate,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 4,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today_outlined,
+                        color: colors.onSurfaceVariant,
+                      ),
+
+                      const SizedBox(width: 16),
+
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment:
+                              CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Date',
+                              style: theme
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                color: colors
+                                    .onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              DateFormat(
+                                'EEE, MMM d, yyyy',
+                              ).format(_dateTime),
+                              style: theme
+                                  .textTheme
+                                  .bodyLarge,
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const Icon(
+                        Icons.chevron_right,
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.access_time),
-                title: const Text('Time'),
-                subtitle: Text(DateFormat('h:mm a').format(_dateTime)),
+
+              const Divider(),
+
+              InkWell(
+                borderRadius:
+                    BorderRadius.circular(12),
                 onTap: _pickTime,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 4,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.access_time_outlined,
+                        color: colors.onSurfaceVariant,
+                      ),
+
+                      const SizedBox(width: 16),
+
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment:
+                              CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Time',
+                              style: theme
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                color: colors
+                                    .onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              DateFormat(
+                                'h:mm a',
+                              ).format(_dateTime),
+                              style: theme
+                                  .textTheme
+                                  .bodyLarge,
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const Icon(
+                        Icons.chevron_right,
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Text(
-                'You\'ll get a notification at this date and time.',
-                style: Theme.of(context).textTheme.bodySmall,
+
+              const SizedBox(height: 12),
+
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(
+                  horizontal: 4,
+                ),
+                child: Row(
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.notifications_none,
+                      size: 18,
+                      color: colors.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'You\'ll get a notification at this date and time.',
+                        style: theme
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(
+                          color:
+                              colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+
+              const SizedBox(height: 100),
+            ],
+          ),
         ),
       ),
     );

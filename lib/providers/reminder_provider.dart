@@ -134,8 +134,6 @@ class ReminderProvider extends ChangeNotifier {
     );
   }
 
-  /// Re-schedules all future, incomplete reminders. Call on app startup,
-  /// since the OS can clear pending alarms (e.g. after a device reboot).
   Future<void> resyncAll() async {
     for (final reminder in _reminders) {
       if (!reminder.isCompleted && !reminder.isPast) {
