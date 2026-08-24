@@ -8,7 +8,6 @@ import '../models/checklist_item.dart';
 class ChecklistProvider extends ChangeNotifier {
   static const Uuid _uuid = Uuid();
 
-
   List<Checklist> get checklists {
     final list = HiveKeys.checklistsBox.values.toList();
 

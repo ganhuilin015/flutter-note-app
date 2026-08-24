@@ -1,62 +1,41 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:notepad/utils/hive_keys.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/note.dart';
 
 class NotesProvider extends ChangeNotifier {
-  static const String _prefsKey = 'notes_data';
   static const Uuid _uuid = Uuid();
 
   List<Note> _notes = [];
 
-  List<Note> get allNotes => List.unmodifiable(_notes);
+  List<Note> get allNotes {
+    final list = HiveKeys.notesBox.values.toList();
 
-  List<Note> get bookmarkedNotes {
-    final list = _notes.where((note) => note.isBookmarked).toList();
-
-    list.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    list.sort(
+      (a, b) => b.updatedAt.compareTo(a.updatedAt),
+    );
 
     return list;
   }
 
-  NotesProvider() {
-    _loadNotes();
-  }
+  List<Note> get bookmarkedNotes {
+    final list = HiveKeys.notesBox.values
+        .where((note) => note.isBookmarked)
+        .toList();
 
-  Future<void> _loadNotes() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final String? raw = prefs.getString(_prefsKey);
-
-    if (raw != null && raw.isNotEmpty) {
-      final List decoded = jsonDecode(raw) as List;
-
-      _notes = decoded
-          .map((e) => Note.fromJson(e as Map<String, dynamic>))
-          .toList();
-    }
-
-    notifyListeners();
-  }
-
-  Future<void> _persist() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final String encoded = jsonEncode(
-      _notes.map((note) => note.toJson()).toList(),
+    list.sort(
+      (a, b) => b.updatedAt.compareTo(a.updatedAt),
     );
 
-    await prefs.setString(_prefsKey, encoded);
+    return list;
   }
 
-  Note createNote({
+  Future<Note> createNote({
     required String title,
     required String content,
     bool isBookmarked = false,
-  }) {
+  }) async {
     final now = DateTime.now();
 
     final note = Note(
@@ -68,8 +47,11 @@ class NotesProvider extends ChangeNotifier {
       isBookmarked: isBookmarked,
     );
 
-    _notes.add(note);
-    _persist();
+    await HiveKeys.notesBox.put(
+      note.id,
+      note,
+    );
+
     notifyListeners();
 
     return note;
@@ -81,43 +63,46 @@ class NotesProvider extends ChangeNotifier {
     String? content,
     bool? isBookmarked,
   }) async {
-    final index = _notes.indexWhere((note) => note.id == id);
+    final note = HiveKeys.notesBox.get(id);
+    if (note == null) return;
 
-    if (index == -1) return;
-
-    final updated = _notes[index].copyWith(
+    final updated = note.copyWith(
       title: title,
       content: content,
       updatedAt: DateTime.now(),
       isBookmarked: isBookmarked,
     );
 
-    _notes[index] = updated;
+    await HiveKeys.notesBox.put(
+      id,
+      updated,
+    );
 
-    await _persist();
 
     notifyListeners();
   }
 
   Future<void> toggleBookmark(String id) async {
-    final index = _notes.indexWhere((note) => note.id == id);
+    final note = HiveKeys.notesBox.get(id);
 
-    if (index == -1) return;
+    if (note == null) return;
 
-    _notes[index] = _notes[index].copyWith(
-      isBookmarked: !_notes[index].isBookmarked,
+    final updated = note.copyWith(
+      isBookmarked: !note.isBookmarked,
       updatedAt: DateTime.now(),
     );
 
-    await _persist();
+    await HiveKeys.notesBox.put(
+      id,
+      updated,
+    );
+
 
     notifyListeners();
   }
 
   Future<void> deleteNote(String id) async {
-    _notes.removeWhere((note) => note.id == id);
-
-    await _persist();
+    await HiveKeys.notesBox.delete(id);
 
     notifyListeners();
   }

@@ -46,22 +46,4 @@ class Note extends HiveObject {
       isBookmarked: isBookmarked ?? this.isBookmarked
     );
   }
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'content': content,
-        'createdAt': createdAt.toIso8601String(),
-        'updatedAt': updatedAt.toIso8601String(),
-        'isBookmarked': isBookmarked,
-      };
-
-  factory Note.fromJson(Map<String, dynamic> json) => Note(
-        id: json['id'] as String,
-        title: json['title'] as String? ?? '',
-        content: json['content'] as String? ?? '',
-        createdAt: DateTime.parse(json['createdAt'] as String),
-        updatedAt: DateTime.parse(json['updatedAt'] as String),
-        isBookmarked: json['isBookmarked'] as bool? ?? false,
-      );
 }

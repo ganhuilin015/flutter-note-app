@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:notepad/models/checklist_item.dart';
 import 'package:notepad/widgets/checklist_block_editor.dart';
 import 'package:provider/provider.dart';
 

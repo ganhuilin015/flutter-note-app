@@ -47,7 +47,7 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
     super.dispose();
   }
 
-  void _autoSave() {
+  void _autoSave() async {
     final title = _titleController.text.trim();
     final content = _contentController.text;
 
@@ -68,7 +68,7 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
       );
     } else {
       if (_autoSavedNoteId == null) {
-        final note = provider.createNote(
+        final note = await provider.createNote(
           title: finalTitle,
           content: content,
           isBookmarked: _isBookmarked,
