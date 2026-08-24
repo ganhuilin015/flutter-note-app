@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:hive_ce/hive.dart';
+import 'package:notepad/utils/hive_keys.dart';
 
 class ThemeProvider extends ChangeNotifier {
   static const String _key = 'themeMode';
-  static const String _boxName = 'theme';
-  Box get _box => Hive.box(_boxName);
+  final themeBox = HiveKeys.themeBox;
 
   ThemeMode _themeMode = ThemeMode.system;
   ThemeMode get themeMode => _themeMode;
@@ -16,7 +15,7 @@ class ThemeProvider extends ChangeNotifier {
   }
 
   void _loadFromHive() {
-    final stored = _box.get(_key, defaultValue: 'system');
+    final stored = themeBox.get(_key, defaultValue: 'system');
 
     switch (stored) {
       case 'dark':
@@ -38,7 +37,6 @@ class ThemeProvider extends ChangeNotifier {
   }
 
   void toggleTheme(bool isDark) async {
-
     _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
 
     _saveToHive();
@@ -59,7 +57,6 @@ class ThemeProvider extends ChangeNotifier {
         value = 'system';
     }
 
-    _box.put(_key, value);
+    themeBox.put(_key, value);
   }
-
 }

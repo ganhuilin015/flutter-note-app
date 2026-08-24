@@ -48,22 +48,4 @@ class Reminder extends HiveObject {
       createdAt: createdAt,
     );
   }
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'description': description,
-        'dateTime': dateTime.toIso8601String(),
-        'isCompleted': isCompleted,
-        'createdAt': createdAt.toIso8601String(),
-      };
-
-  factory Reminder.fromJson(Map<String, dynamic> json) => Reminder(
-        id: json['id'] as String,
-        title: json['title'] as String? ?? '',
-        description: json['description'] as String? ?? '',
-        dateTime: DateTime.parse(json['dateTime'] as String),
-        isCompleted: json['isCompleted'] as bool? ?? false,
-        createdAt: DateTime.parse(json['createdAt'] as String),
-      );
 }

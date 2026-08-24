@@ -7,13 +7,13 @@ import '../models/checklist_item.dart';
 
 class ChecklistProvider extends ChangeNotifier {
   static const Uuid _uuid = Uuid();
+  final checklistsBox = HiveKeys.checklistsBox;
+  final itemsBox = HiveKeys.itemsBox;
 
   List<Checklist> get checklists {
-    final list = HiveKeys.checklistsBox.values.toList();
+    final list = checklistsBox.values.toList();
 
-    list.sort(
-      (a, b) => b.updatedAt.compareTo(a.updatedAt),
-    );
+    list.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
     return list;
   }
@@ -29,66 +29,51 @@ class ChecklistProvider extends ChangeNotifier {
       isBookmarked: false,
     );
 
-    await HiveKeys.checklistsBox.put(
-      checklist.id,
-      checklist,
-    );
-
+    await checklistsBox.put(checklist.id, checklist);
 
     notifyListeners();
     return checklist;
   }
 
-  Future<void> renameChecklist(
-    String id,
-    String name,
-  ) async {
-    final checklist = HiveKeys.checklistsBox.get(id);
+  Future<void> renameChecklist(String id, String name) async {
+    final checklist = checklistsBox.get(id);
     if (checklist == null) return;
 
     final trimmed = name.trim();
-
 
     final updated = checklist.copyWith(
       name: trimmed.isEmpty ? checklist.name : trimmed,
       updatedAt: DateTime.now(),
     );
 
-    await HiveKeys.checklistsBox.put(
-      id,
-      updated,
-    );
+    await checklistsBox.put(id, updated);
 
     notifyListeners();
   }
 
   Future<void> deleteChecklist(String id) async {
-    await HiveKeys.checklistsBox.delete(id);
+    await checklistsBox.delete(id);
 
-    final itemsToDelete = HiveKeys.itemsBox.values
+    final itemsToDelete = itemsBox.values
         .where((item) => item.checklistId == id)
         .map((item) => item.id)
         .toList();
 
-    await HiveKeys.itemsBox.deleteAll(itemsToDelete);
+    await itemsBox.deleteAll(itemsToDelete);
 
     notifyListeners();
   }
 
   Checklist? checklistById(String id) {
-    return HiveKeys.checklistsBox.get(id);
+    return checklistsBox.get(id);
   }
 
   List<ChecklistItem> blocks(String checklistId) {
-    final list = HiveKeys.itemsBox.values
-        .where(
-          (item) => item.checklistId == checklistId,
-        )
+    final list = itemsBox.values
+        .where((item) => item.checklistId == checklistId)
         .toList();
 
-    list.sort(
-      (a, b) => a.createdAt.compareTo(b.createdAt),
-    );
+    list.sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
     return list;
   }
@@ -110,10 +95,7 @@ class ChecklistProvider extends ChangeNotifier {
       createdAt: createdAt ?? DateTime.now(),
     );
 
-    await HiveKeys.itemsBox.put(
-      id,
-      item,
-    );
+    await itemsBox.put(id, item);
 
     await _touchChecklist(checklistId);
 
@@ -139,10 +121,7 @@ class ChecklistProvider extends ChangeNotifier {
       createdAt: createdAt ?? DateTime.now(),
     );
 
-    await HiveKeys.itemsBox.put(
-      id,
-      item,
-    );
+    await itemsBox.put(id, item);
 
     await _touchChecklist(checklistId);
 
@@ -151,71 +130,52 @@ class ChecklistProvider extends ChangeNotifier {
     return id;
   }
 
-  Future<void> updateBlock(
-    String id, {
-    String? name,
-  }) async {
-    final item = HiveKeys.itemsBox.get(id);
+  Future<void> updateBlock(String id, {String? name}) async {
+    final item = itemsBox.get(id);
 
     if (item == null) return;
 
-    final updated = item.copyWith(
-      name: name,
-    );
+    final updated = item.copyWith(name: name);
 
-    await HiveKeys.itemsBox.put(
-      id,
-      updated,
-    );
+    await itemsBox.put(id, updated);
 
-    await _touchChecklist(
-      item.checklistId,
-    );
+    await _touchChecklist(item.checklistId);
 
     notifyListeners();
   }
 
   Future<void> toggleChecked(String id) async {
-    final item = HiveKeys.itemsBox.get(id);
+    final item = itemsBox.get(id);
 
     if (item == null) return;
 
     if (!item.isCheckbox) return;
 
-    final updated = item.copyWith(
-      isChecked: !item.isChecked,
-    );
+    final updated = item.copyWith(isChecked: !item.isChecked);
 
-    await HiveKeys.itemsBox.put(
-      id,
-      updated,
-    );
+    await itemsBox.put(id, updated);
 
-    await _touchChecklist(
-      item.checklistId,
-    );
+    await _touchChecklist(item.checklistId);
 
     notifyListeners();
   }
 
   Future<void> deleteItem(String id) async {
-    final item = HiveKeys.itemsBox.get(id);
+    final item = itemsBox.get(id);
 
     if (item == null) return;
 
     final checklistId = item.checklistId;
 
-    await HiveKeys.itemsBox.delete(id);
+    await itemsBox.delete(id);
 
     await _touchChecklist(checklistId);
 
     notifyListeners();
   }
 
-  Future<void> clearChecked(
-    String checklistId,
-  ) async {
-    final ids = HiveKeys.itemsBox.values
+  Future<void> clearChecked(String checklistId) async {
+    final ids = itemsBox.values
         .where(
           (item) =>
               item.checklistId == checklistId &&
@@ -225,7 +185,7 @@ class ChecklistProvider extends ChangeNotifier {
         .map((item) => item.id)
         .toList();
 
-    await HiveKeys.itemsBox.deleteAll(ids);
+    await itemsBox.deleteAll(ids);
 
     await _touchChecklist(checklistId);
 
@@ -233,7 +193,7 @@ class ChecklistProvider extends ChangeNotifier {
   }
 
   Future<void> toggleBookmark(String id) async {
-    final checklist = HiveKeys.checklistsBox.get(id);
+    final checklist = checklistsBox.get(id);
 
     if (checklist == null) return;
 
@@ -242,41 +202,29 @@ class ChecklistProvider extends ChangeNotifier {
       updatedAt: DateTime.now(),
     );
 
-    await HiveKeys.checklistsBox.put(
-      id,
-      updated,
-    );
+    await checklistsBox.put(id, updated);
 
     notifyListeners();
   }
 
-  Future<void> _touchChecklist(String checklistId)  async {
-    final checklist = HiveKeys.checklistsBox.get(checklistId);
+  Future<void> _touchChecklist(String checklistId) async {
+    final checklist = checklistsBox.get(checklistId);
 
     if (checklist == null) return;
 
-    final updated = checklist.copyWith(
-      updatedAt: DateTime.now(),
-    );
+    final updated = checklist.copyWith(updatedAt: DateTime.now());
 
-    await HiveKeys.checklistsBox.put(
-      checklistId,
-      updated,
-    );
+    await checklistsBox.put(checklistId, updated);
   }
 
   int totalCount(String checklistId) {
-    return HiveKeys.itemsBox.values
-        .where(
-          (item) =>
-              item.checklistId == checklistId &&
-              item.isCheckbox,
-        )
+    return itemsBox.values
+        .where((item) => item.checklistId == checklistId && item.isCheckbox)
         .length;
   }
 
   int checkedCount(String checklistId) {
-    return HiveKeys.itemsBox.values
+    return itemsBox.values
         .where(
           (item) =>
               item.checklistId == checklistId &&
@@ -287,14 +235,9 @@ class ChecklistProvider extends ChangeNotifier {
   }
 
   List<Checklist> get bookmarkedChecklists {
-    return HiveKeys.checklistsBox.values
-        .where(
-          (checklist) => checklist.isBookmarked,
-        )
+    return checklistsBox.values
+        .where((checklist) => checklist.isBookmarked)
         .toList()
-      ..sort(
-        (a, b) =>
-            b.updatedAt.compareTo(a.updatedAt),
-      );
+      ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
   }
 }

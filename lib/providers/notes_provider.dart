@@ -6,27 +6,22 @@ import '../models/note.dart';
 
 class NotesProvider extends ChangeNotifier {
   static const Uuid _uuid = Uuid();
-
-  List<Note> _notes = [];
+  final notesBox = HiveKeys.notesBox;
 
   List<Note> get allNotes {
-    final list = HiveKeys.notesBox.values.toList();
+    final list = notesBox.values.toList();
 
-    list.sort(
-      (a, b) => b.updatedAt.compareTo(a.updatedAt),
-    );
+    list.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
     return list;
   }
 
   List<Note> get bookmarkedNotes {
-    final list = HiveKeys.notesBox.values
+    final list = notesBox.values
         .where((note) => note.isBookmarked)
         .toList();
 
-    list.sort(
-      (a, b) => b.updatedAt.compareTo(a.updatedAt),
-    );
+    list.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
     return list;
   }
@@ -47,10 +42,7 @@ class NotesProvider extends ChangeNotifier {
       isBookmarked: isBookmarked,
     );
 
-    await HiveKeys.notesBox.put(
-      note.id,
-      note,
-    );
+    await notesBox.put(note.id, note);
 
     notifyListeners();
 
@@ -63,7 +55,7 @@ class NotesProvider extends ChangeNotifier {
     String? content,
     bool? isBookmarked,
   }) async {
-    final note = HiveKeys.notesBox.get(id);
+    final note = notesBox.get(id);
     if (note == null) return;
 
     final updated = note.copyWith(
@@ -73,17 +65,13 @@ class NotesProvider extends ChangeNotifier {
       isBookmarked: isBookmarked,
     );
 
-    await HiveKeys.notesBox.put(
-      id,
-      updated,
-    );
-
+    await notesBox.put(id, updated);
 
     notifyListeners();
   }
 
   Future<void> toggleBookmark(String id) async {
-    final note = HiveKeys.notesBox.get(id);
+    final note = notesBox.get(id);
 
     if (note == null) return;
 
@@ -92,17 +80,13 @@ class NotesProvider extends ChangeNotifier {
       updatedAt: DateTime.now(),
     );
 
-    await HiveKeys.notesBox.put(
-      id,
-      updated,
-    );
-
+    await notesBox.put(id, updated);
 
     notifyListeners();
   }
 
   Future<void> deleteNote(String id) async {
-    await HiveKeys.notesBox.delete(id);
+    await notesBox.delete(id);
 
     notifyListeners();
   }
