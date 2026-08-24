@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:notepad/providers/search_provider.dart';
+import 'package:notepad/widgets/empty_state.dart';
 import 'package:provider/provider.dart';
 
 import '../models/note.dart';
@@ -23,7 +24,10 @@ class BookmarksScreen extends StatelessWidget {
         final query = searchProvider.query;
 
         if (notes.isEmpty && checklists.isEmpty) {
-          return const _EmptyBookmarks();
+          return const EmptyState(
+            title: 'No bookmarks yet', 
+            description: 'Bookmark notes and checklists to quickly access them here.', 
+            icon: Icons.bookmark_outline);
         }
 
         final List<BookmarkItem> bookmarks = [
@@ -171,57 +175,4 @@ class BookmarkItem {
       note = null,
       checklist = value,
       updatedAt = value.updatedAt;
-}
-
-class _EmptyBookmarks extends StatelessWidget {
-  const _EmptyBookmarks();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: colors.primary,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.bookmark_outline,
-                color: colors.onPrimary,
-                size: 30,
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            Text(
-              'No bookmarks yet',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            Text(
-              'Bookmark notes and checklists to quickly access them here.',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colors.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:notepad/widgets/empty_state.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/reminder_provider.dart';
@@ -10,75 +11,30 @@ class RemindersScreen extends StatelessWidget {
   const RemindersScreen({super.key});
 
   Future<void> _createReminder(BuildContext context) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => const ReminderEditScreen(),
-      ),
-    );
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const ReminderEditScreen()));
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ReminderProvider>(
       builder: (context, provider, _) {
+
         final overdue = provider.overdue;
         final upcoming = provider.upcoming;
         final completed = provider.completed;
 
         final hasReminders =
-            overdue.isNotEmpty ||
-            upcoming.isNotEmpty ||
-            completed.isNotEmpty;
+            overdue.isNotEmpty || upcoming.isNotEmpty || completed.isNotEmpty;
 
         late Widget content;
 
         if (!hasReminders) {
-          final theme = Theme.of(context);
-          final colors = theme.colorScheme;
-
-          content = Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: colors.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.notifications_none,
-                      color: colors.onPrimary,
-                      size: 30,
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  Text(
-                    'No reminders yet',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: colors.onSurface,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  Text(
-                    'Create a reminder to keep track of things you need to do.',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colors.onSurfaceVariant,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
+          content = const EmptyState(
+            title: 'No reminders yet', 
+            description: 'Create a reminder to keep track of things you need to do.',
+            icon: Icons.notifications_none,
           );
         } else {
           content = ListView(
@@ -86,9 +42,7 @@ class RemindersScreen extends StatelessWidget {
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .surfaceContainerHighest,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(24),
                 ),
                 clipBehavior: Clip.antiAlias,
@@ -96,9 +50,7 @@ class RemindersScreen extends StatelessWidget {
                   children: [
                     // Overdue
                     if (overdue.isNotEmpty) ...[
-                      const _SectionHeader(
-                        label: 'Overdue',
-                      ),
+                      const _SectionHeader(label: 'Overdue'),
 
                       for (int i = 0; i < overdue.length; i++) ...[
                         ReminderTile(
@@ -106,21 +58,16 @@ class RemindersScreen extends StatelessWidget {
                           onTap: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (_) => ReminderEditScreen(
-                                  reminder: overdue[i],
-                                ),
+                                builder: (_) =>
+                                    ReminderEditScreen(reminder: overdue[i]),
                               ),
                             );
                           },
                           onToggleCompleted: (_) {
-                            provider.toggleCompleted(
-                              overdue[i].id,
-                            );
+                            provider.toggleCompleted(overdue[i].id);
                           },
                           onDelete: () {
-                            provider.deleteReminder(
-                              overdue[i].id,
-                            );
+                            provider.deleteReminder(overdue[i].id);
                           },
                         ),
 
@@ -128,18 +75,14 @@ class RemindersScreen extends StatelessWidget {
                           Divider(
                             height: 0.5,
                             thickness: 0.25,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSecondary,
+                            color: Theme.of(context).colorScheme.onSecondary,
                           ),
                       ],
                     ],
 
                     // Upcoming
                     if (upcoming.isNotEmpty) ...[
-                      const _SectionHeader(
-                        label: 'Upcoming',
-                      ),
+                      const _SectionHeader(label: 'Upcoming'),
 
                       for (int i = 0; i < upcoming.length; i++) ...[
                         ReminderTile(
@@ -147,21 +90,16 @@ class RemindersScreen extends StatelessWidget {
                           onTap: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (_) => ReminderEditScreen(
-                                  reminder: upcoming[i],
-                                ),
+                                builder: (_) =>
+                                    ReminderEditScreen(reminder: upcoming[i]),
                               ),
                             );
                           },
                           onToggleCompleted: (_) {
-                            provider.toggleCompleted(
-                              upcoming[i].id,
-                            );
+                            provider.toggleCompleted(upcoming[i].id);
                           },
                           onDelete: () {
-                            provider.deleteReminder(
-                              upcoming[i].id,
-                            );
+                            provider.deleteReminder(upcoming[i].id);
                           },
                         ),
 
@@ -169,18 +107,14 @@ class RemindersScreen extends StatelessWidget {
                           Divider(
                             height: 0.5,
                             thickness: 0.25,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSecondary,
+                            color: Theme.of(context).colorScheme.onSecondary,
                           ),
                       ],
                     ],
 
                     // Completed
                     if (completed.isNotEmpty) ...[
-                      const _SectionHeader(
-                        label: 'Completed',
-                      ),
+                      const _SectionHeader(label: 'Completed'),
 
                       for (int i = 0; i < completed.length; i++) ...[
                         ReminderTile(
@@ -188,21 +122,16 @@ class RemindersScreen extends StatelessWidget {
                           onTap: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (_) => ReminderEditScreen(
-                                  reminder: completed[i],
-                                ),
+                                builder: (_) =>
+                                    ReminderEditScreen(reminder: completed[i]),
                               ),
                             );
                           },
                           onToggleCompleted: (_) {
-                            provider.toggleCompleted(
-                              completed[i].id,
-                            );
+                            provider.toggleCompleted(completed[i].id);
                           },
                           onDelete: () {
-                            provider.deleteReminder(
-                              completed[i].id,
-                            );
+                            provider.deleteReminder(completed[i].id);
                           },
                         ),
 
@@ -210,9 +139,7 @@ class RemindersScreen extends StatelessWidget {
                           Divider(
                             height: 0.5,
                             thickness: 0.25,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSecondary,
+                            color: Theme.of(context).colorScheme.onSecondary,
                           ),
                       ],
                     ],
@@ -239,29 +166,19 @@ class RemindersScreen extends StatelessWidget {
 class _SectionHeader extends StatelessWidget {
   final String label;
 
-  const _SectionHeader({
-    required this.label,
-  });
+  const _SectionHeader({required this.label});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        20,
-        16,
-        20,
-        8,
-      ),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
       child: Align(
         alignment: Alignment.centerLeft,
         child: Text(
           label,
-          style: Theme.of(context)
-              .textTheme
-              .titleSmall
-              ?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
         ),
       ),
     );

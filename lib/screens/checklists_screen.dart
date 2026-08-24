@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:notepad/providers/search_provider.dart';
+import 'package:notepad/widgets/empty_state.dart';
 import 'package:notepad/widgets/floating_action.dart';
 import 'package:provider/provider.dart';
 
@@ -11,16 +12,13 @@ class ChecklistsScreen extends StatelessWidget {
   const ChecklistsScreen({super.key});
 
   Future<void> _createChecklist(BuildContext context) async {
-    final checklist =
-        await context.read<ChecklistProvider>().addChecklist('');
+    final checklist = await context.read<ChecklistProvider>().addChecklist('');
 
     if (!context.mounted) return;
 
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => ChecklistDetailScreen(
-          checklistId: checklist.id,
-        ),
+        builder: (_) => ChecklistDetailScreen(checklistId: checklist.id),
       ),
     );
   }
@@ -39,52 +37,24 @@ class ChecklistsScreen extends StatelessWidget {
         late Widget content;
 
         if (checklists.isEmpty) {
-          final theme = Theme.of(context);
-          final colors = theme.colorScheme;
+          String title;
+          String description;
+          IconData icon;
 
-          content = Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: colors.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.checklist_outlined,
-                      color: colors.onPrimary,
-                      size: 30,
-                    ),
-                  ),
+          if (query.isNotEmpty) {
+            title = 'No checklists found';
+            description = 'Try searching with a different keyword.';
+            icon = Icons.search;
+          } else {
+            title = 'No checklists yet';
+            description = 'Create a checklist to keep track of groceries, tasks, packing lists, and more.';
+            icon = Icons.checklist_outlined;
+          }
 
-                  const SizedBox(height: 20),
-
-                  Text(
-                    'No checklists yet',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: colors.onSurface,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  Text(
-                    'Create a checklist to keep track of groceries, tasks, packing lists, and more.',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colors.onSurfaceVariant,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
+          content = EmptyState(
+            title: title,
+            description: description,
+            icon: icon,
           );
         } else {
           content = ListView(
@@ -101,8 +71,12 @@ class ChecklistsScreen extends StatelessWidget {
                     for (int i = 0; i < checklists.length; i++) ...[
                       ChecklistCard(
                         checklist: checklists[i],
-                        totalCount: checklistProvider.totalCount(checklists[i].id),
-                        checkedCount: checklistProvider.checkedCount(checklists[i].id),
+                        totalCount: checklistProvider.totalCount(
+                          checklists[i].id,
+                        ),
+                        checkedCount: checklistProvider.checkedCount(
+                          checklists[i].id,
+                        ),
 
                         onTap: () {
                           Navigator.of(context).push(

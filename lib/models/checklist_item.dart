@@ -51,26 +51,4 @@ class ChecklistItem extends HiveObject {
       isCheckbox: isCheckbox ?? this.isCheckbox,
     );
   }
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'checklistId': checklistId,
-        'name': name,
-        'quantity': quantity,
-        'isChecked': isChecked,
-        'createdAt': createdAt.toIso8601String(),
-        'isCheckbox': isCheckbox,
-      };
-
-  factory ChecklistItem.fromJson(Map<String, dynamic> json) {
-    return ChecklistItem(
-      id: json['id'] as String,
-      checklistId: json['checklistId'] as String,
-      name: json['name'] as String? ?? '',
-      quantity: json['quantity'] as String? ?? '',
-      isChecked: json['isChecked'] as bool? ?? false,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      isCheckbox: json['isCheckbox'] as bool? ?? true,
-    );
-  }
 }

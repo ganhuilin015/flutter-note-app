@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:notepad/providers/notes_provider.dart';
 import 'package:notepad/providers/search_provider.dart';
 import 'package:notepad/screens/note_edit_screen.dart';
+import 'package:notepad/widgets/empty_state.dart';
 import 'package:notepad/widgets/floating_action.dart';
 import 'package:notepad/widgets/note_card.dart';
 import 'package:provider/provider.dart';
@@ -18,14 +19,12 @@ class NotesList extends StatelessWidget {
       builder: (context, notesProvider, searchProvider, _) {
         final query = searchProvider.query;
         final notes = query.isEmpty
-          ? List.of(notesProvider.allNotes)
-          : notesProvider.allNotes.where((note) {
-              return note.title.toLowerCase().contains(query);
-            }).toList();
+            ? List.of(notesProvider.allNotes)
+            : notesProvider.allNotes.where((note) {
+                return note.title.toLowerCase().contains(query);
+              }).toList();
 
-        notes.sort(
-          (a, b) => b.updatedAt.compareTo(a.updatedAt),
-        );
+        notes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
         late Widget content;
 
@@ -45,46 +44,12 @@ class NotesList extends StatelessWidget {
             icon = Icons.note_alt_outlined;
           }
 
-          content = Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: colors.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(icon, color: colors.onPrimary, size: 30),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  Text(
-                    title,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: colors.onSurface,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  Text(
-                    description,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colors.onSurfaceVariant,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
+          content = EmptyState(
+            title: title,
+            description: description,
+            icon: icon,
           );
+          
         } else {
           content = ListView(
             padding: const EdgeInsets.all(28),
