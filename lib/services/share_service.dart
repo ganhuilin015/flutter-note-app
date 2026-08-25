@@ -53,14 +53,18 @@ class ShareService {
     final title = checklist.name.trim();
 
     final lines = items.map((item) {
-      final checkbox = item.isChecked ? '☑' : '☐';
-
-      if (item.quantity.trim().isEmpty) {
-        return '$checkbox ${item.name}';
+      if (!item.isCheckbox) {
+        return item.name.trim();
       }
 
-      return '$checkbox ${item.name} (${item.quantity})';
-    }).join('\n');
+      final checkbox = item.isChecked ? '☒' : '☐';
+
+      if (item.quantity.trim().isEmpty) {
+        return '$checkbox ${item.name.trim()}';
+      }
+
+      return '$checkbox ${item.name.trim()} (${item.quantity.trim()})';
+    }).where((line) => line.isNotEmpty).join('\n');
 
     if (lines.isEmpty) {
       return title;

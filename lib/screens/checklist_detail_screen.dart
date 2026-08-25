@@ -205,31 +205,38 @@ class _ChecklistDetailScreenState extends State<ChecklistDetailScreen> {
               ],
             ),
 
-            bottomNavigationBar: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.text_fields),
-                      tooltip: 'Add text',
-                      onPressed: _addTextBlock,
-                    ),
+            bottomNavigationBar: AnimatedPadding(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.text_fields),
+                        tooltip: 'Add text',
+                        onPressed: _addTextBlock,
+                      ),
 
-                    IconButton(
-                      icon: const Icon(Icons.check_box_outlined),
-                      tooltip: 'Add checklist item',
-                      onPressed: _addCheckbox,
-                    ),
+                      IconButton(
+                        icon: const Icon(Icons.check_box_outlined),
+                        tooltip: 'Add checklist item',
+                        onPressed: _addCheckbox,
+                      ),
 
-                    const Spacer(),
+                      const Spacer(),
 
-                    Text(
-                      '${provider.checkedCount(widget.checklistId)} / '
-                      '${provider.totalCount(widget.checklistId)}',
-                      style: theme.textTheme.bodySmall,
-                    ),
-                  ],
+                      Text(
+                        '${provider.checkedCount(widget.checklistId)} / '
+                        '${provider.totalCount(widget.checklistId)}',
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

@@ -3,8 +3,10 @@ import 'package:notepad/models/checklist.dart';
 import 'package:notepad/models/checklist_item.dart';
 import 'package:notepad/models/note.dart';
 import 'package:notepad/models/reminder.dart';
+import 'package:notepad/providers/reminder_settings_provider.dart';
 import 'package:notepad/providers/search_provider.dart';
 import 'package:notepad/theme/app_theme.dart';
+import 'package:notepad/utils/hive_keys.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 
@@ -25,11 +27,12 @@ Future<void> main() async {
   Hive.registerAdapter(NoteAdapter());
   Hive.registerAdapter(ReminderAdapter());
 
-  await Hive.openBox<Checklist>('checklists');
-  await Hive.openBox<Note>('notes');
-  await Hive.openBox<Reminder>('reminders');
-  await Hive.openBox<ChecklistItem>('checklist_items');
-  await Hive.openBox('theme');
+  await Hive.openBox<Checklist>(HiveKeys.checklistsBoxName);
+  await Hive.openBox<Note>(HiveKeys.notesBoxName);
+  await Hive.openBox<Reminder>(HiveKeys.remindersBoxName);
+  await Hive.openBox<ChecklistItem>(HiveKeys.itemsBoxName);
+  await Hive.openBox(HiveKeys.themeBoxName);
+  await Hive.openBox(HiveKeys.reminderSettingsBoxName);
 
   runApp(const MyApp());
 }
@@ -45,7 +48,21 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => NotesProvider()),
         ChangeNotifierProvider(create: (_) => ChecklistProvider()),
         ChangeNotifierProvider(create: (_) => SearchProvider()),
-        ChangeNotifierProvider(create: (_) => ReminderProvider()..resyncAll()),
+        ChangeNotifierProvider(
+          create: (_) {
+            final provider =ReminderSettingsProvider();
+            provider.load();
+            return provider;
+          },
+        ),
+
+        ChangeNotifierProvider(
+          create: (context) {
+            return ReminderProvider(
+              context.read<ReminderSettingsProvider>(),
+            );
+          },
+        ),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {

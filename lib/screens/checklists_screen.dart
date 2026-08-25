@@ -59,7 +59,7 @@ class ChecklistsScreen extends StatelessWidget {
           );
         } else {
           content = ListView(
-            padding: const EdgeInsets.all(28),
+            padding: const EdgeInsets.all(20),
             children: [
               Container(
                 decoration: BoxDecoration(

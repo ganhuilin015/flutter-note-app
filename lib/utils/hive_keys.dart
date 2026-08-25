@@ -7,18 +7,20 @@ import 'package:notepad/models/reminder.dart';
 class HiveKeys {
   HiveKeys._();
 
-  static const _checklistsBoxName = 'checklists';
-  static const _itemsBoxName = 'checklist_items';
-  static const _notesBoxName = 'notes';
-  static const _remindersBoxName = 'reminders';
-  static const _themeBoxName = 'theme';
+  static const checklistsBoxName = 'checklists';
+  static const itemsBoxName = 'checklist_items';
+  static const notesBoxName = 'notes';
+  static const remindersBoxName = 'reminders';
+  static const themeBoxName = 'theme';
+  static const reminderSettingsBoxName = 'reminder_settings';
 
   static Box<Checklist> get checklistsBox =>
-      Hive.box<Checklist>(_checklistsBoxName);
+      Hive.box<Checklist>(checklistsBoxName);
   static Box<ChecklistItem> get itemsBox =>
-      Hive.box<ChecklistItem>(_itemsBoxName);
-  static Box<Note> get notesBox => Hive.box<Note>(_notesBoxName);
+      Hive.box<ChecklistItem>(itemsBoxName);
+  static Box<Note> get notesBox => Hive.box<Note>(notesBoxName);
   static Box<Reminder> get remindersBox =>
-      Hive.box<Reminder>(_remindersBoxName);
-  static Box get themeBox => Hive.box(_themeBoxName);
+      Hive.box<Reminder>(remindersBoxName);
+  static Box get themeBox => Hive.box(themeBoxName);
+  static Box get reminderSettingsBox => Hive.box(reminderSettingsBoxName);
 }

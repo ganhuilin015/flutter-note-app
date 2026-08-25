@@ -20,79 +20,124 @@ class ReminderTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isOverdue = !reminder.isCompleted && reminder.isPast;
+    final colors = theme.colorScheme;
+
+    final isOverdue =
+        !reminder.isCompleted && reminder.isPast;
 
     return Dismissible(
       key: ValueKey(reminder.id),
+
       direction: DismissDirection.endToStart,
+
       background: Container(
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        color: theme.colorScheme.errorContainer,
-        child: Icon(Icons.delete, color: theme.colorScheme.onErrorContainer),
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+        color: colors.errorContainer,
+        child: Icon(
+          Icons.delete,
+          color: colors.onErrorContainer,
+        ),
       ),
+
       onDismissed: (_) => onDelete(),
-      child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        child: ListTile(
+
+      child: Container(
+        color: colors.secondary,
+        child: InkWell(
           onTap: onTap,
-          leading: Checkbox(
-            value: reminder.isCompleted,
-            onChanged: onToggleCompleted,
-            shape: const CircleBorder(),
-          ),
-          title: Text(
-            reminder.title.isEmpty ? 'Untitled reminder' : reminder.title,
-            style: TextStyle(
-              decoration:
-                  reminder.isCompleted ? TextDecoration.lineThrough : null,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (reminder.description.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 2, bottom: 4),
-                  child: Text(
-                    reminder.description,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Checkbox(
+                  value: reminder.isCompleted,
+                  onChanged: onToggleCompleted,
+                  shape: const CircleBorder(),
+                  visualDensity: VisualDensity.compact,
+                ),
+
+                const SizedBox(width: 8),
+
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        reminder.title,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          decoration: reminder.isCompleted
+                              ? TextDecoration.lineThrough
+                              : null,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+
+                      if (reminder.description.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            reminder.description,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.textTheme.bodySmall?.color,
+                              decoration: reminder.isCompleted
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+
+                      const SizedBox(height: 8),
+
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.alarm,
+                            size: 14,
+                            color: isOverdue
+                                ? colors.error
+                                : colors.onSecondary,
+                          ),
+
+                          const SizedBox(width: 4),
+
+                          Text(
+                            DateFormat(
+                              'MMM d, yyyy · h:mm a',
+                            ).format(reminder.dateTime),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: isOverdue
+                                  ? colors.error
+                                  : colors.onSecondary,
+                              fontWeight: isOverdue
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+
+                          if (isOverdue) ...[
+                            Text(
+                              '· overdue',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colors.error,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-              Row(
-                children: [
-                  Icon(
-                    Icons.alarm,
-                    size: 14,
-                    color: isOverdue
-                        ? theme.colorScheme.error
-                        : theme.colorScheme.secondary,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    DateFormat('EEE, MMM d, yyyy · h:mm a')
-                        .format(reminder.dateTime),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: isOverdue
-                          ? theme.colorScheme.error
-                          : theme.colorScheme.secondary,
-                      fontWeight:
-                          isOverdue ? FontWeight.w600 : FontWeight.normal,
-                    ),
-                  ),
-                  if (isOverdue) ...[
-                    const SizedBox(width: 6),
-                    Text(
-                      '· overdue',
-                      style: theme.textTheme.bodySmall
-                          ?.copyWith(color: theme.colorScheme.error),
-                    ),
-                  ],
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

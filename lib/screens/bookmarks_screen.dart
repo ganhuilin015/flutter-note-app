@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:notepad/providers/search_provider.dart';
+import 'package:notepad/services/share_service.dart';
 import 'package:notepad/widgets/empty_state.dart';
 import 'package:provider/provider.dart';
 
@@ -18,17 +19,16 @@ class BookmarksScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer3<NotesProvider, ChecklistProvider, SearchProvider>(
-      builder: (context, notesProvider, checklistProvider, searchProvider, _) {
+      builder: (
+        context,
+        notesProvider,
+        checklistProvider,
+        searchProvider,
+        _,
+      ) {
         final notes = notesProvider.bookmarkedNotes;
         final checklists = checklistProvider.bookmarkedChecklists;
-        final query = searchProvider.query;
-
-        if (notes.isEmpty && checklists.isEmpty) {
-          return const EmptyState(
-            title: 'No bookmarks yet', 
-            description: 'Bookmark notes and checklists to quickly access them here.', 
-            icon: Icons.bookmark_outline);
-        }
+        final query = searchProvider.query.toLowerCase().trim();
 
         final List<BookmarkItem> bookmarks = [
           ...notes.map((note) => BookmarkItem.fromNote(note)),
@@ -41,33 +41,59 @@ class BookmarksScreen extends StatelessWidget {
             ? List.of(bookmarks)
             : bookmarks.where((bookmark) {
                 if (bookmark.note != null) {
-                  return bookmark.note!.title.toLowerCase().contains(
-                    query.toLowerCase(),
-                  );
+                  return bookmark.note!.title
+                      .toLowerCase()
+                      .contains(query);
                 }
 
                 if (bookmark.checklist != null) {
-                  return bookmark.checklist!.name.toLowerCase().contains(
-                    query.toLowerCase(),
-                  );
+                  return bookmark.checklist!.name
+                      .toLowerCase()
+                      .contains(query);
                 }
+
                 return false;
               }).toList();
 
-        filteredBookmarks.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+        filteredBookmarks.sort(
+          (a, b) => b.updatedAt.compareTo(a.updatedAt),
+        );
+
+        // Search is active but nothing matched.
+        if (query.isNotEmpty && filteredBookmarks.isEmpty) {
+          return const EmptyState(
+            title: 'No bookmarks found',
+            description: 'Try searching with a different keyword.',
+            icon: Icons.search,
+          );
+        }
+
+        // No bookmarks exist at all.
+        if (query.isEmpty && bookmarks.isEmpty) {
+          return const EmptyState(
+            title: 'No bookmarks yet',
+            description:
+                'Bookmark notes and checklists to quickly access them here.',
+            icon: Icons.bookmark_outline,
+          );
+        }
 
         return ListView(
-          padding: const EdgeInsets.all(28),
+          padding: const EdgeInsets.all(20),
           children: [
             Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                color: Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(24),
               ),
               clipBehavior: Clip.antiAlias,
               child: Column(
                 children: [
-                  for (int i = 0; i < filteredBookmarks.length; i++) ...[
+                  for (int i = 0;
+                      i < filteredBookmarks.length;
+                      i++) ...[
                     _buildBookmarkCard(
                       context,
                       filteredBookmarks[i],
@@ -79,7 +105,9 @@ class BookmarksScreen extends StatelessWidget {
                       Divider(
                         height: 0.5,
                         thickness: 0.25,
-                        color: Theme.of(context).colorScheme.onSecondary,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSecondary,
                       ),
                   ],
                 ],
@@ -90,6 +118,7 @@ class BookmarksScreen extends StatelessWidget {
       },
     );
   }
+}
 
   Widget _buildBookmarkCard(
     BuildContext context,
@@ -114,7 +143,7 @@ class BookmarksScreen extends StatelessWidget {
         },
 
         onShareTap: () {
-          // TODO: Share note
+          ShareService.shareNote(note);
         },
 
         onDeleteTap: () {
@@ -149,11 +178,14 @@ class BookmarksScreen extends StatelessWidget {
       },
 
       onShareTap: () {
-        // TODO: Share checklist
+        ShareService.shareChecklist(
+          checklist,
+          checklistProvider.blocks(checklist.id),
+        );
       },
     );
   }
-}
+
 
 enum BookmarkType { note, checklist }
 
