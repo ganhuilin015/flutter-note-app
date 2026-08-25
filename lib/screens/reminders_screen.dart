@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:notepad/providers/search_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/reminder_provider.dart';
@@ -15,63 +16,77 @@ class RemindersScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
 
-    return Consumer<ReminderProvider>(
-      builder: (context, provider, _) {
-        final overdue = provider.overdue;
-        final upcoming = provider.upcoming;
-        final completed = provider.completed;
+    return Consumer2<ReminderProvider, SearchProvider>(
+      builder: (context, provider, searchProvider, _) {
+        final query = searchProvider.query.trim().toLowerCase();
 
-        final hasReminders =
-            overdue.isNotEmpty ||
-            upcoming.isNotEmpty ||
-            completed.isNotEmpty;
+        final reminders = [
+          ...provider.upcoming,
+          ...provider.overdue,
+          ...provider.completed,
+        ];
+
+        final filteredReminders = query.isEmpty
+            ? List.of(reminders)
+            : reminders.where((reminder) {
+                return reminder.title.toLowerCase().contains(query) ||
+                    reminder.description.toLowerCase().contains(query);
+              }).toList();
 
         late Widget content;
 
-        final reminders = [
-          ...upcoming,
-          ...overdue,
-          ...completed,
-        ];
-
-        if (!hasReminders) {
+        if (reminders.isEmpty) {
           content = const EmptyState(
             title: 'No reminders yet',
             description:
                 'Create a reminder to keep track of things you need to do.',
             icon: Icons.notifications_none,
           );
-        } else {
-            content = ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: colors.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Column(
-                    children: [
-                      for (int i = 0; i < reminders.length; i++) ...[
-                        _buildReminderTile(
-                          context,
-                          provider,
-                          reminders[i],
-                        ),
+        }
+        else if (filteredReminders.isEmpty) {
+          content = const EmptyState(
+            title: 'No reminders found',
+            description:
+                'Try searching with a different keyword.',
+            icon: Icons.search,
+          );
+        }
 
-                        if (i < reminders.length - 1)
-                          Divider(
-                            height: 0.5,
-                            thickness: 0.25,
-                            color: colors.onSecondary,
-                          ),
-                      ],
-                    ],
-                  ),
+        else {
+          content = ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: colors.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(24),
                 ),
-              ],
-            );
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  children: [
+                    for (
+                      int i = 0;
+                      i < filteredReminders.length;
+                      i++
+                    ) ...[
+                      _buildReminderTile(
+                        context,
+                        provider,
+                        filteredReminders[i],
+                      ),
+
+                      if (i < filteredReminders.length - 1)
+                        Divider(
+                          height: 0.5,
+                          thickness: 0.25,
+                          color: colors.onSecondary,
+                        ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          );
         }
 
         return Scaffold(
