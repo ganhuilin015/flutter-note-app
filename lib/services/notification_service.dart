@@ -2,8 +2,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz_data;
 
-/// Wraps flutter_local_notifications to schedule, cancel, and show
-/// local notifications, keyed by an arbitrary string id (e.g. a reminder's id).
+
 class NotificationService {
   NotificationService._internal();
   static final NotificationService instance = NotificationService._internal();
@@ -17,9 +16,6 @@ class NotificationService {
     if (_initialized) return;
 
     tz_data.initializeTimeZones();
-    // Falls back to UTC if the local timezone can't be resolved on-device;
-    // scheduled times are still computed correctly as long as the device
-    // timezone doesn't change between scheduling and firing.
     try {
       final String localName = DateTime.now().timeZoneName;
       tz.setLocalLocation(tz.getLocation(localName));
@@ -43,11 +39,15 @@ class NotificationService {
 
     await _plugin.initialize(settings: initSettings);
 
-    // Android 13+ requires runtime notification permission.
     await _plugin
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
+
+    await _plugin
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
+      ?.requestExactAlarmsPermission();
 
     await _plugin
         .resolvePlatformSpecificImplementation<
@@ -72,12 +72,8 @@ class NotificationService {
         ),
       );
 
-  /// Deterministic notification id derived from a string id, so scheduling
-  /// under the same id twice reuses/replaces the same notification slot.
   int _idFromString(String id) => id.hashCode & 0x7fffffff;
 
-  /// Schedules a one-off notification to fire at [scheduledDate].
-  /// If the date is already in the past, nothing is scheduled.
   Future<void> scheduleReminder({
     required String id,
     required String title,
@@ -124,5 +120,13 @@ class NotificationService {
   Future<void> cancelAll() async {
     if (!_initialized) await init();
     await _plugin.cancelAll();
+  }
+
+  Future<void> requestExactAlarmPermission() async {
+    final androidPlugin = _plugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+
+    await androidPlugin?.requestExactAlarmsPermission();
   }
 }

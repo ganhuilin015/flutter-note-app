@@ -110,7 +110,6 @@ class _ReminderEditScreenState extends State<ReminderEditScreen> {
       return;
     }
 
-    // Check if the reminder is in the past.
     if (_dateTime.isBefore(DateTime.now())) {
       final proceed = await showDialog<bool>(
         context: context,
@@ -195,18 +194,6 @@ class _ReminderEditScreenState extends State<ReminderEditScreen> {
               onPressed: _delete,
             ),
 
-          // Share
-          IconButton(
-            icon: const Icon(
-              Icons.share,
-            ),
-            tooltip: 'Share',
-            onPressed: () {
-              // TODO: implement sharing
-            },
-          ),
-
-          // Confirm / Save
           IconButton(
             icon: const Icon(
               Icons.check,

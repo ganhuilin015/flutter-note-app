@@ -1,4 +1,4 @@
-package com.example.notepad
+package com.gangangan.notepad
 
 import io.flutter.embedding.android.FlutterActivity
 

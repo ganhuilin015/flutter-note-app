@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:notepad/providers/search_provider.dart';
+import 'package:notepad/services/share_service.dart';
 import 'package:notepad/widgets/empty_state.dart';
 import 'package:notepad/widgets/floating_action.dart';
 import 'package:provider/provider.dart';
@@ -96,8 +97,15 @@ class ChecklistsScreen extends StatelessWidget {
                           checklistProvider.toggleBookmark(checklists[i].id);
                         },
 
-                        onShareTap: () {
-                          // TODO: implement sharing
+                        onShareTap: () async {
+                          final items = checklistProvider.blocks(
+                            checklists[i].id,
+                          );
+
+                          await ShareService.shareChecklist(
+                            checklists[i],
+                            items,
+                          );
                         },
                       ),
 

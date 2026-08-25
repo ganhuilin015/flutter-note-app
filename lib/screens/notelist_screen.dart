@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:notepad/providers/notes_provider.dart';
 import 'package:notepad/providers/search_provider.dart';
 import 'package:notepad/screens/note_edit_screen.dart';
+import 'package:notepad/services/share_service.dart';
 import 'package:notepad/widgets/empty_state.dart';
 import 'package:notepad/widgets/floating_action.dart';
 import 'package:notepad/widgets/note_card.dart';
@@ -76,7 +77,7 @@ class NotesList extends StatelessWidget {
                           notesProvider.toggleBookmark(notes[i].id);
                         },
                         onShareTap: () {
-                          // TODO: Share note
+                          ShareService.shareNote(notes[i]);
                         },
                         onDeleteTap: () {
                           notesProvider.deleteNote(notes[i].id);

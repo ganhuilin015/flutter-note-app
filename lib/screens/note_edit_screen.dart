@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:notepad/services/share_service.dart';
 import 'package:provider/provider.dart';
 
 import '../models/note.dart';
@@ -16,6 +17,8 @@ class NoteEditScreen extends StatefulWidget {
 class _NoteEditScreenState extends State<NoteEditScreen> {
   late final TextEditingController _titleController;
   late final TextEditingController _contentController;
+  bool _isSaving = false;
+  bool _hasPendingSave = false;
 
   bool _isBookmarked = false;
   String? _autoSavedNoteId;
@@ -47,7 +50,7 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
     super.dispose();
   }
 
-  void _autoSave() async {
+  Future<void> _autoSave() async {
     final title = _titleController.text.trim();
     final content = _contentController.text;
 
@@ -55,33 +58,49 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
       return;
     }
 
-    final provider = context.read<NotesProvider>();
+    if (_isSaving) {
+      _hasPendingSave = true;
+      return;
+    }
 
-    final finalTitle = title.isEmpty ? 'Untitled' : title;
+    _isSaving = true;
 
-    if (_isEditing) {
-      provider.updateNote(
-        widget.note!.id,
-        title: finalTitle,
-        content: content,
-        isBookmarked: _isBookmarked,
-      );
-    } else {
-      if (_autoSavedNoteId == null) {
-        final note = await provider.createNote(
+    try {
+      final provider = context.read<NotesProvider>();
+
+      final finalTitle = title.isEmpty ? 'Untitled' : title;
+
+      if (_isEditing) {
+        await provider.updateNote(
+          widget.note!.id,
           title: finalTitle,
           content: content,
           isBookmarked: _isBookmarked,
         );
-
-        _autoSavedNoteId = note.id;
       } else {
-        provider.updateNote(
-          _autoSavedNoteId!,
-          title: finalTitle,
-          content: content,
-          isBookmarked: _isBookmarked,
-        );
+        if (_autoSavedNoteId == null) {
+          final note = await provider.createNote(
+            title: finalTitle,
+            content: content,
+            isBookmarked: _isBookmarked,
+          );
+
+          _autoSavedNoteId = note.id;
+        } else {
+          await provider.updateNote(
+            _autoSavedNoteId!,
+            title: finalTitle,
+            content: content,
+            isBookmarked: _isBookmarked,
+          );
+        }
+      }
+    } finally {
+      _isSaving = false;
+
+      if (_hasPendingSave) {
+        _hasPendingSave = false;
+        _autoSave();
       }
     }
   }
@@ -92,6 +111,16 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
     context.read<NotesProvider>().deleteNote(widget.note!.id);
 
     Navigator.of(context).pop();
+  }
+
+  Future<void> _shareNote() async {
+    final noteId = _isEditing ? widget.note!.id : _autoSavedNoteId;
+
+    if (noteId == null) return;
+    final note = context.read<NotesProvider>().getNote(noteId);
+
+    if (note == null) return;
+    await ShareService.shareNote(note);
   }
 
   @override
@@ -108,9 +137,7 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
             ),
             tooltip: 'Bookmark',
             onPressed: () {
-              final noteId = _isEditing
-                ? widget.note!.id
-                : _autoSavedNoteId;
+              final noteId = _isEditing ? widget.note!.id : _autoSavedNoteId;
 
               if (noteId == null) return;
               context.read<NotesProvider>().toggleBookmark(noteId);
@@ -131,9 +158,7 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
           IconButton(
             icon: const Icon(Icons.share),
             tooltip: 'Share',
-            onPressed: () {
-              //TODO: share function
-            },
+            onPressed: _shareNote,
           ),
         ],
       ),
@@ -146,7 +171,9 @@ class _NoteEditScreenState extends State<NoteEditScreen> {
             children: [
               TextField(
                 controller: _titleController,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
                 decoration: const InputDecoration(
                   hintText: 'Title',
                   border: InputBorder.none,

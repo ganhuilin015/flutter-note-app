@@ -8,6 +8,10 @@ class NotesProvider extends ChangeNotifier {
   static const Uuid _uuid = Uuid();
   final notesBox = HiveKeys.notesBox;
 
+  Note? getNote(String id) {
+    return notesBox.get(id);
+  }
+
   List<Note> get allNotes {
     final list = notesBox.values.toList();
 
