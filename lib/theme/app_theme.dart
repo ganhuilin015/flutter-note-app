@@ -15,7 +15,7 @@ class AppTheme {
       surface: AppColors.lightBackground,
       onSurface: Colors.black,
     ),
-    fontFamily: GoogleFonts.inter().fontFamily,
+    fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
     useMaterial3: true,
   );
 
@@ -31,7 +31,7 @@ class AppTheme {
       surface: AppColors.darkBackground,
       onSurface: Colors.white,
     ),
-    fontFamily: GoogleFonts.poppins().fontFamily,
+    fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
     useMaterial3: true,
   );
 }
