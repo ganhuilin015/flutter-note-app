@@ -91,6 +91,15 @@ class NotificationService {
     return id.hashCode & 0x7fffffff;
   }
 
+  int _notificationId(
+    String reminderId,
+    Duration offset,
+  ) {
+    return _idFromString(
+      '${reminderId}_${offset.inSeconds}',
+    );
+  }
+
   Future<void> scheduleReminderNotification({
     required String id,
     required String title,
@@ -109,8 +118,10 @@ class NotificationService {
       return;
     }
 
-    final notificationId =
-        _idFromString(id);
+    final notificationId = _notificationId(
+      id,
+      offset,
+    );
 
     final tz.TZDateTime notificationDate =
         tz.TZDateTime.from(
@@ -136,9 +147,7 @@ class NotificationService {
       await init();
     }
 
-    await _plugin.cancel(
-      id: _idFromString(id),
-    );
+    await cancelReminderNotifications(id);
   }
 
   Future<void> cancelReminderNotifications(
@@ -148,18 +157,20 @@ class NotificationService {
       await init();
     }
 
-    for (final offset in [
-      604800,
-      432000,
-      259200,
-      86400,
-      3600,
-    ]) {
-      final notificationId =
-          '${reminderId}_$offset';
+    const offsets = [
+      Duration(days: 7),
+      Duration(days: 5),
+      Duration(days: 3),
+      Duration(days: 1),
+      Duration(hours: 1),
+    ];
 
+    for (final offset in offsets) {
       await _plugin.cancel(
-        id: _idFromString(notificationId),
+        id: _notificationId(
+          reminderId,
+          offset,
+        ),
       );
     }
   }
@@ -173,6 +184,10 @@ class NotificationService {
   }
 
   Future<void> requestExactAlarmPermission() async {
+    if (!_initialized) {
+      await init();
+    }
+
     final androidPlugin =
         _plugin.resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();

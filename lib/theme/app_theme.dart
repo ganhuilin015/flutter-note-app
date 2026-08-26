@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   static final light = ThemeData(
@@ -14,6 +15,7 @@ class AppTheme {
       surface: AppColors.lightBackground,
       onSurface: Colors.black,
     ),
+    fontFamily: GoogleFonts.inter().fontFamily,
     useMaterial3: true,
   );
 
@@ -29,6 +31,7 @@ class AppTheme {
       surface: AppColors.darkBackground,
       onSurface: Colors.white,
     ),
+    fontFamily: GoogleFonts.poppins().fontFamily,
     useMaterial3: true,
   );
 }

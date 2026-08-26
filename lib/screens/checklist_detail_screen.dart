@@ -217,13 +217,19 @@ class _ChecklistDetailScreenState extends State<ChecklistDetailScreen> {
                   child: Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.text_fields),
+                        icon: const Icon(
+                          Icons.text_fields,
+                          size: 35,
+                        ),
                         tooltip: 'Add text',
                         onPressed: _addTextBlock,
                       ),
 
                       IconButton(
-                        icon: const Icon(Icons.check_box_outlined),
+                        icon: const Icon(
+                          Icons.radio_button_checked,
+                          size: 35,
+                        ),
                         tooltip: 'Add checklist item',
                         onPressed: _addCheckbox,
                       ),

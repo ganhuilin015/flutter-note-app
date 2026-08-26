@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:notepad/models/checklist_item.dart';
 
 class ChecklistBlockEditor extends StatefulWidget {
-
   final ChecklistItem item;
   final bool autoFocus;
   final VoidCallback onFocusHandled;
@@ -27,9 +27,11 @@ class ChecklistBlockEditor extends StatefulWidget {
       _ChecklistBlockEditorState();
 }
 
-class _ChecklistBlockEditorState extends State<ChecklistBlockEditor> {
+class _ChecklistBlockEditorState
+    extends State<ChecklistBlockEditor> {
   late final TextEditingController _controller;
   late final FocusNode _focusNode;
+  late final FocusNode _keyboardFocusNode;
 
   @override
   void initState() {
@@ -41,15 +43,35 @@ class _ChecklistBlockEditorState extends State<ChecklistBlockEditor> {
 
     _focusNode = FocusNode();
 
+    _keyboardFocusNode = FocusNode(
+      onKeyEvent: _handleKeyEvent,
+    );
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
       if (widget.autoFocus) {
         _focusNode.requestFocus();
-
         widget.onFocusHandled();
       }
     });
+  }
+
+  KeyEventResult _handleKeyEvent(
+    FocusNode node,
+    KeyEvent event,
+  ) {
+    if (event is KeyDownEvent &&
+        event.logicalKey ==
+            LogicalKeyboardKey.backspace) {
+      if (_controller.text.isEmpty) {
+        widget.onDelete();
+
+        return KeyEventResult.handled;
+      }
+    }
+
+    return KeyEventResult.ignored;
   }
 
   @override
@@ -61,6 +83,7 @@ class _ChecklistBlockEditorState extends State<ChecklistBlockEditor> {
     if (widget.item.name != _controller.text) {
       final selection = _controller.selection;
       final newLength = widget.item.name.length;
+
       int clampOffset(int offset) {
         return offset.clamp(0, newLength);
       }
@@ -84,7 +107,6 @@ class _ChecklistBlockEditorState extends State<ChecklistBlockEditor> {
         if (!mounted) return;
 
         _focusNode.requestFocus();
-
         widget.onFocusHandled();
       });
     }
@@ -94,18 +116,19 @@ class _ChecklistBlockEditorState extends State<ChecklistBlockEditor> {
   void dispose() {
     _controller.dispose();
     _focusNode.dispose();
+    _keyboardFocusNode.dispose();
 
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-
-    if (!widget.item.isCheckbox) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: 4,
-        ),
+  Widget _buildTextBlock() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        vertical: 4,
+      ),
+      child: Focus(
+        focusNode: _keyboardFocusNode,
+        onKeyEvent: _handleKeyEvent,
         child: TextField(
           controller: _controller,
           focusNode: _focusNode,
@@ -130,25 +153,49 @@ class _ChecklistBlockEditorState extends State<ChecklistBlockEditor> {
 
           onChanged: widget.onChanged,
         ),
-      );
-    }
+      ),
+    );
+  }
+
+  Widget _buildCheckboxBlock(
+    BuildContext context,
+  ) {
+    final colors =
+        Theme.of(context).colorScheme;
 
     return Padding(
       padding: const EdgeInsets.symmetric(
-        vertical: 2,
+        vertical: 0,
       ),
       child: Row(
         crossAxisAlignment:
             CrossAxisAlignment.center,
         children: [
-          Checkbox(
-            value: widget.item.isChecked,
-            onChanged: (_) {
-              widget.onToggle();
-            },
-            visualDensity: VisualDensity.compact,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          Transform.scale(
+            scale: 1.25,
+            child: Checkbox(
+              value: widget.item.isChecked,
+
+              onChanged: (_) {
+                widget.onToggle();
+              },
+
+              shape: const CircleBorder(),
+
+              side: BorderSide(
+                color: colors.onSecondary,
+                width: 1,
+              ),
+
+              visualDensity:
+                  VisualDensity.standard,
+
+              materialTapTargetSize:
+                  MaterialTapTargetSize.shrinkWrap,
+            ),
           ),
+
+          const SizedBox(width: 5),
 
           Expanded(
             child: TextField(
@@ -166,6 +213,9 @@ class _ChecklistBlockEditorState extends State<ChecklistBlockEditor> {
 
               textCapitalization: TextCapitalization.sentences,
               onChanged: widget.onChanged,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontSize: 15,
+              ),
               onSubmitted: (_) {
                 widget.onAddCheckbox();
               },
@@ -182,5 +232,14 @@ class _ChecklistBlockEditorState extends State<ChecklistBlockEditor> {
         ],
       ),
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.item.isCheckbox) {
+      return _buildTextBlock();
+    }
+
+    return _buildCheckboxBlock(context);
   }
 }

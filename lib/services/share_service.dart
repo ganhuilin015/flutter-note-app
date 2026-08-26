@@ -48,23 +48,26 @@ class ShareService {
 
   static String _formatChecklist(
     Checklist checklist,
-    List<ChecklistItem> items,
+    List items,
   ) {
     final title = checklist.name.trim();
 
     final lines = items.map((item) {
       if (!item.isCheckbox) {
-        return item.name.trim();
+        return item.name;
       }
 
-      final checkbox = item.isChecked ? '☒' : '☐';
+      final checkbox = item.isChecked ? '●' : '○';
 
-      if (item.quantity.trim().isEmpty) {
-        return '$checkbox ${item.name.trim()}';
+      final name = item.name.trim();
+      final quantity = item.quantity.trim();
+
+      if (quantity.isEmpty) {
+        return '$checkbox $name';
       }
 
-      return '$checkbox ${item.name.trim()} (${item.quantity.trim()})';
-    }).where((line) => line.isNotEmpty).join('\n');
+      return '$checkbox $name ($quantity)';
+    }).join('\n');
 
     if (lines.isEmpty) {
       return title;

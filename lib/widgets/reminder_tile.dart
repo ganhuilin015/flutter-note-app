@@ -49,13 +49,20 @@ class ReminderTile extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Checkbox(
-                  value: reminder.isCompleted,
-                  onChanged: onToggleCompleted,
-                  shape: const CircleBorder(),
-                  visualDensity: VisualDensity.compact,
+                Transform.scale(
+                  scale: 1.3,
+                  child: Checkbox(
+                    value: reminder.isCompleted,
+                    onChanged: onToggleCompleted,
+                    shape: const CircleBorder(),
+                    side: BorderSide(
+                      color: Theme.of(context).colorScheme.onSecondary,
+                      width: 1,
+                    ),
+                    visualDensity: VisualDensity.compact,
+                  ),
                 ),
 
                 const SizedBox(width: 8),
@@ -69,9 +76,6 @@ class ReminderTile extends StatelessWidget {
                         reminder.title,
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
-                          decoration: reminder.isCompleted
-                              ? TextDecoration.lineThrough
-                              : null,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
