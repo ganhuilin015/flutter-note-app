@@ -17,7 +17,7 @@ class SettingsScreen extends StatelessWidget {
 
     Future<void> openPrivacy() async {
       final url = Uri.parse(
-        'https://ganhuilin015.github.io/timer-legal/',
+        'https://ganhuilin015.github.io/notepad-legal/',
       );
 
       await launchUrl(
@@ -28,7 +28,7 @@ class SettingsScreen extends StatelessWidget {
 
     Future<void> openTOS() async {
       final url = Uri.parse(
-        'https://ganhuilin015.github.io/timer-legal/tos.html',
+        'https://ganhuilin015.github.io/notepad-legal/tos.html',
       );
 
       await launchUrl(
