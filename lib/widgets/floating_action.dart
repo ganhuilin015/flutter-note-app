@@ -12,11 +12,18 @@ class AppFloatingActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FloatingActionButton(
-      heroTag: tag,
-      onPressed: onPressed,
-      elevation: 0.5,
-      child: const Icon(Icons.add),
+    return SizedBox(
+      width: 64,
+      height: 64,
+      child: FloatingActionButton(
+        heroTag: tag,
+        onPressed: onPressed,
+        elevation: 0.5,
+        child: const Icon(
+          Icons.add,
+          size: 30,
+        ),
+      ),
     );
   }
 }
