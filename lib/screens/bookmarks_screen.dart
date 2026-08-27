@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:notepad/providers/search_provider.dart';
 import 'package:notepad/services/share_service.dart';
 import 'package:notepad/widgets/empty_state.dart';
+import 'package:notepad/widgets/native_ad.dart';
 import 'package:provider/provider.dart';
 
 import '../models/note.dart';
@@ -94,6 +95,10 @@ class BookmarksScreen extends StatelessWidget {
                   for (int i = 0;
                       i < filteredBookmarks.length;
                       i++) ...[
+
+                      if (i == 1 && filteredBookmarks.length >= 3)
+                        const NativeAdWidget(),
+
                     _buildBookmarkCard(
                       context,
                       filteredBookmarks[i],
@@ -110,6 +115,9 @@ class BookmarksScreen extends StatelessWidget {
                             .onSecondary,
                       ),
                   ],
+                  
+                  if (filteredBookmarks.length < 3)
+                      const NativeAdWidget(),
                 ],
               ),
             ),

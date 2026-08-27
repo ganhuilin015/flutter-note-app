@@ -5,6 +5,7 @@ import 'package:notepad/screens/note_edit_screen.dart';
 import 'package:notepad/services/share_service.dart';
 import 'package:notepad/widgets/empty_state.dart';
 import 'package:notepad/widgets/floating_action.dart';
+import 'package:notepad/widgets/native_ad.dart';
 import 'package:notepad/widgets/note_card.dart';
 import 'package:provider/provider.dart';
 
@@ -64,6 +65,10 @@ class NotesList extends StatelessWidget {
                 child: Column(
                   children: [
                     for (int i = 0; i < notes.length; i++) ...[
+
+                      if (i == 2 && notes.length >= 3)
+                        const NativeAdWidget(),
+
                       NoteCard(
                         note: notes[i],
                         onTap: () {
@@ -91,6 +96,9 @@ class NotesList extends StatelessWidget {
                           color: colors.onSecondary,
                         ),
                     ],
+
+                    if (notes.length < 3)
+                      const NativeAdWidget(),
                   ],
                 ),
               ),

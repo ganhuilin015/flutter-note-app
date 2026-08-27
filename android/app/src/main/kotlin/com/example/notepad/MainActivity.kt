@@ -1,4 +1,4 @@
-package com.gangangan.Notably
+package com.gangangan.IncNote
 
 import io.flutter.embedding.android.FlutterActivity
 

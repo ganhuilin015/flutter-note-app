@@ -3,6 +3,7 @@ import 'package:notepad/providers/search_provider.dart';
 import 'package:notepad/services/share_service.dart';
 import 'package:notepad/widgets/empty_state.dart';
 import 'package:notepad/widgets/floating_action.dart';
+import 'package:notepad/widgets/native_ad.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/checklist_provider.dart';
@@ -70,6 +71,10 @@ class ChecklistsScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     for (int i = 0; i < checklists.length; i++) ...[
+
+                      if (i == 2 && checklists.length >= 3)
+                        const NativeAdWidget(),
+
                       ChecklistCard(
                         checklist: checklists[i],
                         totalCount: checklistProvider.totalCount(
@@ -116,6 +121,9 @@ class ChecklistsScreen extends StatelessWidget {
                           color: Theme.of(context).colorScheme.onSecondary,
                         ),
                     ],
+
+                    if (checklists.length < 3)
+                      const NativeAdWidget(),
                   ],
                 ),
               ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:notepad/providers/search_provider.dart';
+import 'package:notepad/widgets/native_ad.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/reminder_provider.dart';
@@ -69,6 +70,10 @@ class RemindersScreen extends StatelessWidget {
                       i < filteredReminders.length;
                       i++
                     ) ...[
+
+                      if (i == 2 && filteredReminders.length >= 3)
+                        const NativeAdWidget(),
+
                       _buildReminderTile(
                         context,
                         provider,
@@ -82,6 +87,9 @@ class RemindersScreen extends StatelessWidget {
                           color: colors.onSecondary,
                         ),
                     ],
+                    
+                    if (filteredReminders.length < 3)
+                      const NativeAdWidget(),
                   ],
                 ),
               ),

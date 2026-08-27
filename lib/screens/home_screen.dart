@@ -3,6 +3,7 @@ import 'package:notepad/providers/search_provider.dart';
 import 'package:notepad/screens/bookmarks_screen.dart';
 import 'package:notepad/screens/notelist_screen.dart';
 import 'package:notepad/screens/settings_screen.dart';
+import 'package:notepad/widgets/banner_ad.dart';
 import 'package:notepad/widgets/search_bar.dart';
 import 'package:provider/provider.dart';
 import 'checklists_screen.dart';
@@ -17,7 +18,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _tabIndex = 0; // 0 = Notes, 1 = Reminders, 2 = Checklist, 3 = Bookmarks
+  int _tabIndex = 0; // 0 = Notes, 1 = Checklist, 2 = Reminders, 3 = Bookmarks
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
 
@@ -76,39 +77,45 @@ class _HomeScreenState extends State<HomeScreen> {
         index: _tabIndex,
         children: [
           const NotesList(),
-          const RemindersScreen(),
           const ChecklistsScreen(),
+          const RemindersScreen(),
           const BookmarksScreen(),
         ],
       ),
 
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _tabIndex,
-        onDestinationSelected: (index) {
-          setState(() => _tabIndex = index);
-          if (index != 0) _stopSearch();
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.note_outlined),
-            selectedIcon: Icon(Icons.note),
-            label: 'Notes',
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          NavigationBar(
+            selectedIndex: _tabIndex,
+            onDestinationSelected: (index) {
+              setState(() => _tabIndex = index);
+              if (index != 0) _stopSearch();
+            },
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.note_outlined),
+                selectedIcon: Icon(Icons.note),
+                label: 'Notes',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.checklist_outlined),
+                selectedIcon: Icon(Icons.checklist),
+                label: 'Checklists',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.alarm_outlined),
+                selectedIcon: Icon(Icons.alarm),
+                label: 'Reminders',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.bookmark_outline),
+                selectedIcon: Icon(Icons.bookmark),
+                label: 'Bookmarks',
+              ),
+            ],
           ),
-          NavigationDestination(
-            icon: Icon(Icons.alarm_outlined),
-            selectedIcon: Icon(Icons.alarm),
-            label: 'Reminders',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.checklist_outlined),
-            selectedIcon: Icon(Icons.checklist),
-            label: 'Checklists',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.bookmark_outline),
-            selectedIcon: Icon(Icons.bookmark),
-            label: 'Bookmarks',
-          ),
+          const BannerAdWidget(),
         ],
       ),
     );
@@ -117,9 +124,9 @@ class _HomeScreenState extends State<HomeScreen> {
   String _titleForTab(int index) {
     switch (index) {
       case 1:
-        return 'Reminders';
-      case 2:
         return 'Checklists';
+      case 2:
+        return 'Reminders';
       case 3:
         return 'Bookmarks';
       default:
@@ -133,10 +140,10 @@ class _HomeScreenState extends State<HomeScreen> {
         return 'Search notes...';
 
       case 1:
-        return 'Search reminders...';
+        return 'Search checklists...';
 
       case 2:
-        return 'Search checklists...';
+        return 'Search reminders...';
 
       case 3:
         return 'Search bookmarks...';
