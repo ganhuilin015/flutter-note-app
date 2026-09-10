@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:notepad/services/permission_service.dart';
 import 'package:provider/provider.dart';
 
 import '../models/reminder.dart';
@@ -24,6 +25,8 @@ class _ReminderEditScreenState extends State<ReminderEditScreen> {
   late DateTime _dateTime;
 
   bool get _isEditing => widget.reminder != null;
+  bool _notificationsEnabled = true;
+  bool _exactAlarmsEnabled = true;  
 
   @override
   void initState() {
@@ -41,6 +44,8 @@ class _ReminderEditScreenState extends State<ReminderEditScreen> {
         DateTime.now().add(
           const Duration(hours: 1),
         );
+
+    _checkPermissions();
   }
 
   @override
@@ -48,6 +53,38 @@ class _ReminderEditScreenState extends State<ReminderEditScreen> {
     _titleController.dispose();
     _descController.dispose();
     super.dispose();
+  }
+
+  Future<void> _checkPermissions() async {
+    final notifications =
+        await PermissionService.isNotificationGranted();
+
+    final exactAlarms =
+        await PermissionService.isExactAlarmGranted();
+
+
+    if (!mounted) return;
+
+    setState(() {
+      _notificationsEnabled = notifications;
+      _exactAlarmsEnabled = exactAlarms;
+    });
+  }
+
+  String get _notificationMessage {
+    if (_notificationsEnabled && _exactAlarmsEnabled) {
+      return 'You\'ll get a notification at this date and time.';
+    }
+
+    if (!_notificationsEnabled && !_exactAlarmsEnabled) {
+      return 'Notification won\'t be scheduled because notifications and exact alarms are disabled.';
+    }
+
+    if (!_notificationsEnabled) {
+      return 'Notification won\'t be scheduled because notifications are disabled.';
+    }
+
+    return 'Notification won\'t be scheduled because exact alarms are disabled.';
   }
 
   Future<void> _pickDate() async {
@@ -375,7 +412,7 @@ class _ReminderEditScreenState extends State<ReminderEditScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'You\'ll get a notification at this date and time.',
+                        _notificationMessage,
                         style: theme
                             .textTheme
                             .bodySmall

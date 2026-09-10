@@ -5,13 +5,13 @@ import 'package:timezone/data/latest_all.dart' as tz_data;
 class NotificationService {
   NotificationService._internal();
 
-  static final NotificationService instance =
-      NotificationService._internal();
+  static final NotificationService instance = NotificationService._internal();
 
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
   bool _initialized = false;
+  static const String _permissionAskedKey = 'notification_permission_asked';
 
   Future<void> init() async {
     if (_initialized) return;
@@ -21,9 +21,7 @@ class NotificationService {
     try {
       final String localName = DateTime.now().timeZoneName;
 
-      tz.setLocalLocation(
-        tz.getLocation(localName),
-      );
+      tz.setLocalLocation(tz.getLocation(localName));
     } catch (_) {
       // Keep default timezone if lookup fails.
     }
@@ -31,73 +29,43 @@ class NotificationService {
     const AndroidInitializationSettings androidInit =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    const DarwinInitializationSettings iosInit =
-        DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
+    const DarwinInitializationSettings iosInit = DarwinInitializationSettings(
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
     );
 
-    const InitializationSettings initSettings =
-        InitializationSettings(
+    const InitializationSettings initSettings = InitializationSettings(
       android: androidInit,
       iOS: iosInit,
     );
 
-    await _plugin.initialize(
-      settings: initSettings,
-    );
-
-    await _plugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
-
-    await _plugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestExactAlarmsPermission();
-
-    await _plugin
-        .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>()
-        ?.requestPermissions(
-          alert: true,
-          badge: true,
-          sound: true,
-        );
+    await _plugin.initialize(settings: initSettings);
 
     _initialized = true;
   }
 
-  NotificationDetails get _details =>
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'reminders_channel',
-          'Reminders',
-          channelDescription:
-              'Notifications for scheduled reminders',
-          importance: Importance.max,
-          priority: Priority.high,
-        ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        ),
-      );
+  NotificationDetails get _details => const NotificationDetails(
+    android: AndroidNotificationDetails(
+      'reminders_channel',
+      'Reminders',
+      channelDescription: 'Notifications for scheduled reminders',
+      importance: Importance.max,
+      priority: Priority.high,
+    ),
+    iOS: DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    ),
+  );
 
   int _idFromString(String id) {
     return id.hashCode & 0x7fffffff;
   }
 
-  int _notificationId(
-    String reminderId,
-    Duration offset,
-  ) {
-    return _idFromString(
-      '${reminderId}_${offset.inSeconds}',
-    );
+  int _notificationId(String reminderId, Duration offset) {
+    return _idFromString('${reminderId}_${offset.inSeconds}');
   }
 
   Future<void> scheduleReminderNotification({
@@ -111,38 +79,34 @@ class NotificationService {
       await init();
     }
 
-    final scheduledDate =
-        reminderDate.subtract(offset);
+    final scheduledDate = reminderDate.subtract(offset);
 
     if (scheduledDate.isBefore(DateTime.now())) {
       return;
     }
 
-    final notificationId = _notificationId(
-      id,
-      offset,
-    );
+    final notificationId = _notificationId(id, offset);
 
-    final tz.TZDateTime notificationDate =
-        tz.TZDateTime.from(
+    final tz.TZDateTime notificationDate = tz.TZDateTime.from(
       scheduledDate,
       tz.local,
     );
 
-    await _plugin.zonedSchedule(
-      id: notificationId,
-      title: title,
-      body: body,
-      scheduledDate: notificationDate,
-      notificationDetails: _details,
-      androidScheduleMode:
-          AndroidScheduleMode.exactAllowWhileIdle,
-    );
+    try {
+      await _plugin.zonedSchedule(
+        id: notificationId,
+        title: title,
+        body: body,
+        scheduledDate: notificationDate,
+        notificationDetails: _details,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      );
+    } catch (e) {
+      return;
+    }
   }
 
-  Future<void> cancelReminderNotification(
-    String id,
-  ) async {
+  Future<void> cancelReminderNotification(String id) async {
     if (!_initialized) {
       await init();
     }
@@ -150,9 +114,7 @@ class NotificationService {
     await cancelReminderNotifications(id);
   }
 
-  Future<void> cancelReminderNotifications(
-    String reminderId,
-  ) async {
+  Future<void> cancelReminderNotifications(String reminderId) async {
     if (!_initialized) {
       await init();
     }
@@ -166,12 +128,7 @@ class NotificationService {
     ];
 
     for (final offset in offsets) {
-      await _plugin.cancel(
-        id: _notificationId(
-          reminderId,
-          offset,
-        ),
-      );
+      await _plugin.cancel(id: _notificationId(reminderId, offset));
     }
   }
 
@@ -188,9 +145,10 @@ class NotificationService {
       await init();
     }
 
-    final androidPlugin =
-        _plugin.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlugin = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
 
     await androidPlugin?.requestExactAlarmsPermission();
   }

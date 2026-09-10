@@ -6,8 +6,38 @@ import 'package:notepad/services/permission_service.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() =>
+      _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen>
+  with WidgetsBindingObserver {
+
+    @override
+    void initState() {
+      super.initState();
+      WidgetsBinding.instance.addObserver(this);
+    }
+
+    @override
+    void dispose() {
+      WidgetsBinding.instance.removeObserver(this);
+      super.dispose();
+    }
+
+    @override
+    void didChangeAppLifecycleState(
+      AppLifecycleState state,
+    ) {
+      if (state == AppLifecycleState.resumed) {
+        setState(() {});
+      }
+    }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +79,7 @@ class SettingsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _sectionTitle('Appearance'),
+          _sectionTitle('Appearance', null),
 
           Card(
             elevation: 0,
@@ -74,7 +104,7 @@ class SettingsScreen extends StatelessWidget {
 
           const SizedBox(height: 20),
 
-          _sectionTitle('Reminder Notifications'),
+          _sectionTitle('Reminder Notifications', 'If you change any of the options after creating a reminder, save the reminder again to ensure its notification is scheduled.',),
 
           Card(
             elevation: 0,
@@ -131,7 +161,7 @@ class SettingsScreen extends StatelessWidget {
 
           const SizedBox(height: 20),
 
-          _sectionTitle('Permissions'),
+          _sectionTitle('Permissions', 'If you enable permissions after creating a reminder, save the reminder again to ensure its notification is scheduled.'),
 
           Card(
             elevation: 0,
@@ -139,11 +169,17 @@ class SettingsScreen extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
-            child: FutureBuilder<bool>(
-              future: PermissionService.isNotificationGranted(),
+            child: FutureBuilder(
+              future: Future.wait([
+                PermissionService.isNotificationGranted(),
+                PermissionService.isExactAlarmGranted(),
+              ]),
               builder: (context, snapshot) {
                 final notifGranted =
-                    snapshot.data ?? false;
+                    snapshot.data?[0] ?? false;
+
+                final exactAlarmGranted =
+                    snapshot.data?[1] ?? false;
 
                 return Column(
                   children: [
@@ -164,6 +200,39 @@ class SettingsScreen extends StatelessWidget {
                             ? 'Enabled'
                             : 'Disabled',
                       ),
+                    ),
+
+                    Divider(
+                      height: 0.5,
+                      thickness: 0.25,
+                      color: colors.onSecondary,
+                    ),
+
+                    ListTile(
+                      leading: Icon(
+                        exactAlarmGranted
+                            ? Icons.alarm_on
+                            : Icons.alarm_off,
+                        color: colors.onSecondary,
+                      ),
+                      title: const Text(
+                        'Exact Alarms',
+                      ),
+                      subtitle: Text(
+                        exactAlarmGranted
+                            ? 'Enabled'
+                            : 'Disabled',
+                      ),
+                      trailing: const Icon(
+                        Icons.chevron_right,
+                      ),
+                      onTap: () async {
+                        await PermissionService.requestExactAlarm();
+
+                        if (!context.mounted) return;
+
+                        (context as Element).markNeedsBuild();
+                      },
                     ),
 
                     Divider(
@@ -201,7 +270,7 @@ class SettingsScreen extends StatelessWidget {
 
           const SizedBox(height: 20),
 
-          _sectionTitle('Legal'),
+          _sectionTitle('Legal', null),
 
           Card(
             elevation: 0,
@@ -247,20 +316,36 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _sectionTitle(String title) {
+  Widget _sectionTitle(String title, String? description) {
     return Padding(
       padding: const EdgeInsets.only(
         bottom: 8,
         left: 4,
       ),
-      child: Text(
-        title.toUpperCase(),
-        style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 1,
-          color: Colors.grey,
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1,
+              color: Colors.grey,
+            ),
+          ),
+
+          if (description != null && description.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              description,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.grey,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
