@@ -11,7 +11,6 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   bool _initialized = false;
-  static const String _permissionAskedKey = 'notification_permission_asked';
 
   Future<void> init() async {
     if (_initialized) return;
