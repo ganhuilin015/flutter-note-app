@@ -169,10 +169,10 @@ class _ChecklistBlockEditorState
       ),
       child: Row(
         crossAxisAlignment:
-            CrossAxisAlignment.center,
+            CrossAxisAlignment.start,
         children: [
           Transform.scale(
-            scale: 1.25,
+            scale: 1.3,
             child: Checkbox(
               value: widget.item.isChecked,
 
@@ -201,14 +201,16 @@ class _ChecklistBlockEditorState
             child: TextField(
               controller: _controller,
               focusNode: _focusNode,
-              keyboardType: TextInputType.text,
+              keyboardType: TextInputType.multiline,
               textInputAction: TextInputAction.next,
+              minLines: 1,
+              maxLines: null,
               decoration:
                 const InputDecoration(
                   hintText: 'List item',
                   border: InputBorder.none,
                   isDense: true,
-                  contentPadding: EdgeInsets.zero,
+                  contentPadding: EdgeInsets.only(top: 5),
                 ),
 
               textCapitalization: TextCapitalization.sentences,
